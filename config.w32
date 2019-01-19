@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("SeasClick", "for SeasClick support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("SeasClick", "enable SeasClick support", "no");
+
+if (PHP_SEASCLICK != "no") {
+	EXTENSION("SeasClick", "SeasClick.c", PHP_EXTNAME_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+}
+
