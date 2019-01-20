@@ -6,9 +6,8 @@ if(!extension_loaded('SeasClick')) {
 }
 
 $config = [
-    "host" => "127.0.0.1",
+    "host" => "clickhouse",
     "compression" => true
-    // "port" => "9044",
 ];
 
 clientTest($config);
@@ -17,6 +16,8 @@ function clientTest($config)
 {
     $deleteTable = false;
     $client = new SeasClick($config);
+
+    $client->execute("CREATE DATABASE IF NOT EXISTS test");
 
     testArray($client, $deleteTable);
     testEnum($client, $deleteTable);

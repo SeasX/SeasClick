@@ -1,0 +1,31 @@
+version: "2"
+services: 
+  web:
+    image: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    volumes_from:
+      - php
+    links:
+      - php
+    volumes:
+      - ./docker/config/nginx:/etc/nginx/conf.d:ro
+
+  php:
+    build: 
+      context: ./
+      dockerfile: Dockerfile
+    expose:
+      - "9000"
+    links:
+      - clickhouse
+    volumes: 
+      - ./:/data/SeasClick
+
+  clickhouse:
+    image: yandex/clickhouse-server
+    expose:
+      - "9000"
+
