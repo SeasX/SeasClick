@@ -284,7 +284,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
                 value_string.erase(std::remove(value_string.begin(), value_string.end(), '-'), value_string.end());
                 if (value_string.length() != 32) {
-                    exception();
+                    throw std::runtime_error("UUID format error");
                 }
 
                 string first = value_string.substr(0, 16);

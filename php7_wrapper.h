@@ -24,10 +24,10 @@ static inline int sc_add_assoc_stringl_ex(zval *arg, const char *key, size_t key
 
 static inline zval *sc_zend_hash_find(HashTable *ht, char *k, int len)
 {
-    zval *tmp = NULL;
-    if (zend_hash_find(ht, k, len, (void **) &tmp) == SUCCESS)
+    zval **tmp = NULL;
+    if (zend_hash_find(ht, k, len + 1, (void **) &tmp) == SUCCESS)
     {
-        return tmp;
+        return *tmp;
     }
     else
     {

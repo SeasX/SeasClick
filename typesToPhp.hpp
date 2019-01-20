@@ -37,6 +37,7 @@ extern "C" {
 #include <map>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 using namespace clickhouse;
 using namespace std;
