@@ -17,6 +17,7 @@ function clientTest($config)
 {
     $deleteTable = true;
     $client = new SeasClick($config);
+    $client->execute("CREATE DATABASE IF NOT EXISTS test");
 
     testArray($client, $deleteTable);
     testEnum($client, $deleteTable);
@@ -68,7 +69,7 @@ function testArray($client, $deleteTable = false) {
         'select' => 'string_c, array_c, arraynull_c',
         'table' => 'test.array_test'
     ]);
-    print_r($result);
+    var_dump($result);
 
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -91,7 +92,7 @@ function testEnum($client, $deleteTable = false) {
         'select' => 'enum8_c, enum16_c',
         'table' => 'test.enum_test'
     ]);
-    print_r($result);
+    var_dump($result);
 
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -120,7 +121,7 @@ function testString($client, $deleteTable = false) {
         'select' => 'string_c, fixedstring_c',
         'table' => 'test.string_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -147,7 +148,7 @@ function testNullAble($client, $deleteTable = false) {
         'select' => 'int8null_c, stringnull_c, enumnull_c, float32null_c, uuidnull_c',
         'table' => 'test.nullable_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -177,7 +178,7 @@ function testUInt($client, $deleteTable = false) {
         'select' => 'int8_c, int16_c, uint8_c, uint16_c',
         'table' => 'test.int_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -207,7 +208,7 @@ function testFloat($client, $deleteTable = false) {
         'select' => 'float32_c, float64_c',
         'table' => 'test.float_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -237,7 +238,7 @@ function testUUID($client, $deleteTable = false) {
         'select' => 'uuid_c, uuid2_c',
         'table' => 'test.uuid_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
@@ -260,7 +261,7 @@ function testDate($client, $deleteTable = false) {
         'select' => 'date_c, datetime_c',
         'table' => 'test.date_test'
     ]);
-    print_r($result);
+    var_dump($result);
     
     if ($deleteTable) {
         $client->execute("DROP TABLE {table}", [
