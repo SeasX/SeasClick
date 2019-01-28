@@ -279,22 +279,25 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
             SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
             {
-                convert_to_string(array_value);
-                string value_string = (string)Z_STRVAL_P(array_value);
+                if (Z_TYPE_P(array_value) == IS_NULL) {
+                    value->Append(UInt128(0, 0));
+                } else {
+                    convert_to_string(array_value);
+                    string value_string = (string)Z_STRVAL_P(array_value);
 
-                value_string.erase(std::remove(value_string.begin(), value_string.end(), '-'), value_string.end());
-                if (value_string.length() != 32) {
-                    throw std::runtime_error("UUID format error");
+                    value_string.erase(std::remove(value_string.begin(), value_string.end(), '-'), value_string.end());
+                    if (value_string.length() != 32) {
+                        throw std::runtime_error("UUID format error");
+                    }
+
+                    string first = value_string.substr(0, 16);
+                    string second = value_string.substr(16, 16);
+                    uint64_t i_first = std::stoull(first, nullptr, 16);
+                    uint64_t i_second = std::stoull(second, nullptr, 16);
+                    value->Append(UInt128(i_first, i_second));
                 }
-
-                string first = value_string.substr(0, 16);
-                string second = value_string.substr(16, 16);
-                uint64_t i_first = std::stoull(first, nullptr, 16);
-                uint64_t i_second = std::stoull(second, nullptr, 16);
-                value->Append(UInt128(i_first, i_second));
             }
             SC_HASHTABLE_FOREACH_END();
-
             return value;
             break;
         }
@@ -398,6 +401,10 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
             SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
             {
+                if (Z_TYPE_P(array_value) != IS_ARRAY) {
+                    throw std::runtime_error("The inserted data is not an array type");
+                }
+
                 child->Append(insertColumn(type->GetItemType(), array_value));
 
                 value->AppendAsColumn(child);
@@ -475,7 +482,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         case Type::Code::Nullable:
         {
             auto nulls = std::make_shared<ColumnUInt8>();
-            auto child = createColumn(type->GetNestedType());
 
             SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
             {
@@ -487,7 +493,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
             }
             SC_HASHTABLE_FOREACH_END();
 
-            child->Append(insertColumn(type->GetNestedType(), value_zval));
+            ColumnRef child = insertColumn(type->GetNestedType(), value_zval);
 
             return std::make_shared<ColumnNullable>(child, nulls);
             break;

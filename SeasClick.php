@@ -15,7 +15,7 @@ clientTest($config);
 
 function clientTest($config)
 {
-    $deleteTable = false;
+    $deleteTable = true;
     $client = new SeasClick($config);
 
     testArray($client, $deleteTable);
@@ -29,16 +29,16 @@ function clientTest($config)
 }
 
 function testArray($client, $deleteTable = false) {
-    $client->execute("CREATE TABLE IF NOT EXISTS test.array_test (string_c String, array_c Array(Int8)) ENGINE = Memory");
+    $client->execute("CREATE TABLE IF NOT EXISTS test.array_test (string_c String, array_c Array(Int8), arraynull_c Array(Nullable(String))) ENGINE = Memory");
 
     $client->insert("test.array_test", [
-        'string_c', 'array_c'
+        'string_c', 'array_c', 'arraynull_c'
     ], [
         [
-            'string_c1', [1, 2, 3]
+            'string_c1', [1, 2, 3], ['string']
         ],
         [
-            'string_c2', [4, 5, 6]
+            'string_c2', [4, 5, 6], [null]
         ]
     ]);
 
@@ -65,7 +65,7 @@ function testArray($client, $deleteTable = false) {
     ]);
 
     $result = $client->select("SELECT {select} FROM {table}", [
-        'select' => 'string_c, array_c',
+        'select' => 'string_c, array_c, arraynull_c',
         'table' => 'test.array_test'
     ]);
     print_r($result);
@@ -130,17 +130,21 @@ function testString($client, $deleteTable = false) {
 }
 
 function testNullAble($client, $deleteTable = false) {
-    $client->execute("CREATE TABLE IF NOT EXISTS test.nullable_test (int8null_c Nullable(Int8)) ENGINE = Memory");
+    $client->execute("CREATE TABLE IF NOT EXISTS test.nullable_test (int8null_c Nullable(Int8), stringnull_c Nullable(String), enumnull_c Nullable(Enum8('One8' = 1, 'Two8' = 2)), float32null_c Nullable(Float32), uuidnull_c Nullable(UUID)) ENGINE = Memory");
 
     $client->insert("test.nullable_test",[
-        'int8null_c'
+        'int8null_c',
+        'stringnull_c',
+        'enumnull_c',
+        'float32null_c',
+        'uuidnull_c'
     ], [
-        [null],
-        [8]
+        [8, 'string', 'One8', 32, '31249a1b7b0542709f37c609b48a9bb2'],
+        [null, null, null, null, null],
     ]);
 
     $result = $client->select("SELECT {select} FROM {table}", [
-        'select' => 'int8null_c',
+        'select' => 'int8null_c, stringnull_c, enumnull_c, float32null_c, uuidnull_c',
         'table' => 'test.nullable_test'
     ]);
     print_r($result);
@@ -219,7 +223,7 @@ function testUUID($client, $deleteTable = false) {
         'uuid_c', 'uuid2_c'
     ], [
         ['31249a1b-7b05-4270-9f37-c609b48a9bb2', '31249a1b7b0542709f37c609b48a9bb2'],
-        ['31249a1b-7b05-4270-9f37-c609b48a9bb2', '31249a1b7b0542709f37c609b48a9bb2'],
+        ['31249a1b-7b05-4270-9f37-c609b48a9bb2', null],
     ]);
 
     $client->insert("test.uuid_test",[
