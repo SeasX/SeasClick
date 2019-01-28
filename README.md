@@ -31,7 +31,7 @@ phpize
 make && make install
 ```
 
-## [Example](https://github.com/SeasX/SeasClick/tests/index.php)
+## [Example](https://github.com/SeasX/SeasClick/tests/test.php)
 
 ```php
 <?php

@@ -6,9 +6,9 @@ if(!extension_loaded('SeasClick')) {
 }
 
 $config = [
-    "host" => "127.0.0.1",
+    "host" => "clickhouse",
+    "port" => "9000",
     "compression" => true
-    // "port" => "9044",
 ];
 
 clientTest($config);
