@@ -22,6 +22,11 @@ static inline int sc_add_assoc_stringl_ex(zval *arg, const char *key, size_t key
     return add_assoc_stringl_ex(arg, key, key_len + 1, str, length, __duplicate);
 }
 
+static inline int sc_add_assoc_null_ex(zval *arg, const char *key, size_t key_len)
+{
+    return add_assoc_null_ex(arg, key, key_len + 1);
+}
+
 static inline zval *sc_zend_hash_find(HashTable *ht, char *k, int len)
 {
     zval **tmp = NULL;
@@ -76,6 +81,7 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_add_assoc_double_ex                add_assoc_double_ex
 #define sc_add_assoc_zval_ex                  add_assoc_zval_ex
 #define sc_add_assoc_stringl_ex(a, b, c, d, e, f)               add_assoc_stringl_ex(a, b, c, d, e)
+#define sc_add_assoc_null_ex(a, b, c)               add_assoc_null_ex(a, b, c)
 static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zval *obj, const char *s, int len, int silent)
 {
     zval rv;

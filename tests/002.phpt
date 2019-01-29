@@ -35,28 +35,6 @@ function testArray($client, $deleteTable = false) {
         ]
     ]);
 
-    $client->insert("test.array_test", [
-        'string_c'
-    ], [
-        [
-            'string_c1'
-        ],
-        [
-            'string_c2'
-        ]
-    ]);
-
-    $client->insert("test.array_test", [
-        'array_c'
-    ], [
-        [
-            [1, 2, 3]
-        ],
-        [
-            [4, 5, 6]
-        ]
-    ]);
-
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'string_c, array_c, arraynull_c',
         'table' => 'test.array_test'
@@ -72,7 +50,7 @@ function testArray($client, $deleteTable = false) {
 
 ?>
 --EXPECT--
-array(6) {
+array(2) {
   [0]=>
   array(3) {
     ["string_c"]=>
@@ -109,62 +87,6 @@ array(6) {
     array(1) {
       [0]=>
       NULL
-    }
-  }
-  [2]=>
-  array(3) {
-    ["string_c"]=>
-    string(9) "string_c1"
-    ["array_c"]=>
-    array(0) {
-    }
-    ["arraynull_c"]=>
-    array(0) {
-    }
-  }
-  [3]=>
-  array(3) {
-    ["string_c"]=>
-    string(9) "string_c2"
-    ["array_c"]=>
-    array(0) {
-    }
-    ["arraynull_c"]=>
-    array(0) {
-    }
-  }
-  [4]=>
-  array(3) {
-    ["string_c"]=>
-    string(0) ""
-    ["array_c"]=>
-    array(3) {
-      [0]=>
-      int(1)
-      [1]=>
-      int(2)
-      [2]=>
-      int(3)
-    }
-    ["arraynull_c"]=>
-    array(0) {
-    }
-  }
-  [5]=>
-  array(3) {
-    ["string_c"]=>
-    string(0) ""
-    ["array_c"]=>
-    array(3) {
-      [0]=>
-      int(4)
-      [1]=>
-      int(5)
-      [2]=>
-      int(6)
-    }
-    ["arraynull_c"]=>
-    array(0) {
     }
   }
 }

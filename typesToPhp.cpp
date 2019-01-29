@@ -649,7 +649,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
             if (is_array) {
                 sc_add_next_index_stringl(arr, (char*)col.c_str(), col.length(), 1);
             } else {
-                sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), col.length(), 1);
+                sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), strlen((char*)col.c_str()), 1);
             }
             break;
         }
@@ -721,7 +721,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 if (is_array) {
                     add_next_index_null(arr);
                 } else {
-                    add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                    sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
                 }
             } else {
                 convertToZval(arr, nullable->Nested(), row, column_name, 0);

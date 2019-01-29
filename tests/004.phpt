@@ -58,13 +58,13 @@ array(2) {
     ["string_c"]=>
     string(9) "string_c1"
     ["fixedstring_c"]=>
-    string(50) "fixedstring_c1"
+    string(14) "fixedstring_c1"
   }
   [1]=>
   array(2) {
     ["string_c"]=>
     string(9) "string_c2"
     ["fixedstring_c"]=>
-    string(50) "fixedstring_c2"
+    string(14) "fixedstring_c2"
   }
 }
