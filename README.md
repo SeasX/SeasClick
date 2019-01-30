@@ -27,6 +27,8 @@ PHP 5.5+
 ## Install
 ```ssh
 git clone https://github.com/SeasX/SeasClick.git
+git submodule init
+git submodule update
 cd SeasClick
 phpize
 ./configure
