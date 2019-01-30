@@ -33,13 +33,10 @@ function testArray($client, $deleteTable = false) {
     $client->execute("CREATE TABLE IF NOT EXISTS test.array_test (string_c String, array_c Array(Int8), arraynull_c Array(Nullable(String))) ENGINE = Memory");
 
     $client->insert("test.array_test", [
-        'string_c', 'array_c', 'arraynull_c'
+        'string_c', 'arraynull_c'
     ], [
         [
-            'string_c1', [1, 2, 3], ['string']
-        ],
-        [
-            'string_c2', [4, 5, 6], [null]
+            'string_c2', ["string"]
         ]
     ]);
 

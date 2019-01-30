@@ -441,6 +441,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
                 if (NULL == fzval) {
                     throw std::runtime_error("The number of parameters inserted per line is inconsistent");
                 }
+                sc_zval_add_ref(fzval);
                 add_next_index_zval(return_tmp, fzval);
             }
             SC_HASHTABLE_FOREACH_END();

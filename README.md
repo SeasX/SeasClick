@@ -4,9 +4,9 @@ ClickHouse PHP client
 PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [ClickHouse C++ client](https://github.com/artpaul/clickhouse-cpp)
 
 ## ClickHouse
-[What is ClickHouse](https://clickhouse.yandex/docs/en/)
-[ClickHouse Performance](https://clickhouse.yandex/docs/en/introduction/performance/)
-[Performance comparison with MySQL](https://clickhouse.yandex/benchmark.html#[%22100000000%22,[%22ClickHouse%22,%22MySQL%22],[%220%22,%221%22,%222%22]])
+* [What is ClickHouse](https://clickhouse.yandex/docs/en/)
+* [ClickHouse Performance](https://clickhouse.yandex/docs/en/introduction/performance/)
+* [Performance comparison with MySQL](https://clickhouse.yandex/benchmark.html#[%22100000000%22,[%22ClickHouse%22,%22MySQL%22],[%220%22,%221%22,%222%22]])
 
 ## Supported data types
 
@@ -21,6 +21,8 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
 * String
 * UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
+## Supported PHP version
+PHP 5.5+
 
 ## Install
 ```ssh

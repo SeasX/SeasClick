@@ -2,6 +2,7 @@
 #define IS_TRUE                               1
 #define SC_MAKE_STD_ZVAL(p)                   MAKE_STD_ZVAL(p)
 #define sc_zval_ptr_dtor                      zval_ptr_dtor
+#define sc_zval_add_ref(a)                       zval_add_ref(&a)
 static inline int sc_add_assoc_long_ex(zval *arg, const char *key, size_t key_len, long value)
 {
     return add_assoc_long_ex(arg, key, key_len + 1, value);
@@ -77,6 +78,7 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_zend_hash_index_find   zend_hash_index_find
 #define SC_MAKE_STD_ZVAL(p)             zval _stack_zval_##p; p = &(_stack_zval_##p)
 #define sc_zval_ptr_dtor(p)  zval_ptr_dtor(*p)
+#define sc_zval_add_ref(p)   Z_TRY_ADDREF_P(p)
 #define sc_add_assoc_long_ex                  add_assoc_long_ex
 #define sc_add_assoc_double_ex                add_assoc_double_ex
 #define sc_add_assoc_zval_ex                  add_assoc_zval_ex
