@@ -1,0 +1,5 @@
+{
+    "require": {
+        "smi2/phpclickhouse": "^1.1"
+    }
+}

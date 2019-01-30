@@ -1,7 +1,7 @@
 ClickHouse PHP client
 =====
 
-PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [ClickHouse C++ client](https://github.com/artpaul/clickhouse-cpp)
+PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [ClickHouse C++ client](https://github.com/aiwhj/clickhouse-cpp)
 
 ## ClickHouse
 * [What is ClickHouse](https://clickhouse.yandex/docs/en/)
@@ -23,6 +23,9 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
 
 ## Supported PHP version
 PHP 5.5+
+
+## Performance
+![image](https://github.com/SeasX/SeasClick/raw/master/tests/bench_mark/bench_mark.png)
 
 ## Install
 ```ssh

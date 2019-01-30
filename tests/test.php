@@ -27,6 +27,26 @@ function clientTest($config)
     testFloat($client, $deleteTable);
     testUUID($client, $deleteTable);
     testDate($client, $deleteTable);
+    testMulInstance($config, $deleteTable);
+}
+
+function testMulInstance($config, $deleteTable = false) {
+    $client1 = new SeasClick($config);
+    testArray($client1, $deleteTable);
+    
+    $client2 = new SeasClick($config);
+    testArray($client2, $deleteTable);
+    
+    $client3 = new SeasClick($config);
+    testArray($client3, $deleteTable);
+    
+    $client4 = new SeasClick($config);
+    testArray($client4, $deleteTable);
+
+    unset($client1);
+    unset($client2);
+    unset($client3);
+    unset($client4);
 }
 
 function testArray($client, $deleteTable = false) {
