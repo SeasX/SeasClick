@@ -225,9 +225,13 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         return;
     }
 #else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 1)
         Z_PARAM_ARRAY(connectParames)
     ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
 #endif
 
     HashTable *_ht = Z_ARRVAL_P(connectParames);
@@ -338,11 +342,15 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         return;
     }
 #else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_STRING(sql, l_sql)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(params)
     ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
 #endif
     try {
         string sql_s = (string)sql;
@@ -404,11 +412,15 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         return;
     }
 #else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(3, 3)
         Z_PARAM_STRING(table, l_table)
         Z_PARAM_ARRAY(columns)
         Z_PARAM_ARRAY(values)
     ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
 #endif
 
     try {
@@ -489,11 +501,15 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
         return;
     }
 #else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 2)
         Z_PARAM_STRING(sql, l_sql)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(params)
     ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
 #endif
 
     try {
