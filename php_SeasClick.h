@@ -22,22 +22,6 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include "php.h"
-#include "php_ini.h"
-#include "php_globals.h"
-#include "php_main.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <ext/date/php_date.h>
-#include <ext/standard/url.h>
-#include <ext/standard/info.h>
-#include <ext/standard/php_array.h>
-#include <ext/standard/php_var.h>
-#include <ext/standard/basic_functions.h>
-
 #ifndef PHP_SEASCLICK_H
 #define PHP_SEASCLICK_H
 
@@ -54,9 +38,11 @@ extern zend_module_entry SeasClick_module_entry;
 #	define PHP_SEASCLICK_API
 #endif
 
+extern "C" {
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+}
 
 typedef unsigned long ulong_t;
 /*
@@ -73,19 +59,16 @@ ZEND_END_MODULE_GLOBALS(SeasClick)
    You are encouraged to rename these macros something shorter, see
    examples in any other php module directory.
 */
-#define SEASCLICK_G(v) ZEND_MODULE_GLOBALS_ACCESSOR(SeasClick, v)
 
-#if defined(ZTS) && defined(COMPILE_DL_SEASCLICK)
-ZEND_TSRMLS_CACHE_EXTERN()
+#ifdef ZTS
+#define SEASCLICK_G(v) TSRMG(SeasClick_globals_id, zend_SeasClick_globals *, v)
+#else
+#define SEASCLICK_G(v) (SeasClick_globals.v)
 #endif
 
-#endif	/* PHP_SEASCLICK_H */
-extern "C"
-{
 #define SEASCLICK_RES_NAME                        "SeasClick"
-extern zend_class_entry *SeasClick_ce;
-};
 
+#endif	/* PHP_SEASCLICK_H */
 
 /*
  * Local variables:

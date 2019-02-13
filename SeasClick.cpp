@@ -26,10 +26,11 @@ extern "C" {
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "php_SeasClick.h"
 #include "Zend/zend_exceptions.h"
 #include "php7_wrapper.h"
-};
+}
+
+#include "php_SeasClick.h"
 
 #include "lib/clickhouse-cpp/clickhouse/client.h"
 #include "lib/clickhouse-cpp/clickhouse/error_codes.h"
@@ -58,10 +59,9 @@ PHP_INI_END()
 /* }}} */
 
 #ifdef COMPILE_DL_SEASCLICK
-#ifdef ZTS
-ZEND_TSRMLS_CACHE_DEFINE()
-#endif
+extern "C" {
 ZEND_GET_MODULE(SeasClick)
+}
 #endif
 
 PHP_FUNCTION(SeasClick_test)
@@ -69,14 +69,14 @@ PHP_FUNCTION(SeasClick_test)
 	char *arg = NULL;
 	size_t arg_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &arg, &arg_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
 		return;
 	}
     try {
         Client client(ClientOptions().SetHost(arg).SetPingBeforeQuery(true));
         // RunTests(client);
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
@@ -168,9 +168,6 @@ PHP_MSHUTDOWN_FUNCTION(SeasClick)
  */
 PHP_RINIT_FUNCTION(SeasClick)
 {
-#if defined(COMPILE_DL_SEASCLICK) && defined(ZTS)
-	ZEND_TSRMLS_CACHE_UPDATE();
-#endif
 	return SUCCESS;
 }
 /* }}} */
@@ -242,19 +239,19 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     if (php_array_get_value(_ht, "host", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "host", sizeof("host") - 1, Z_STRVAL_P(value));
+        zend_update_property_string(SeasClick_ce, this_obj, "host", sizeof("host") - 1, Z_STRVAL_P(value) TSRMLS_CC);
     }
 
     if (php_array_get_value(_ht, "port", value))
     {
         convert_to_long(value);
-        zend_update_property_long(SeasClick_ce, this_obj, "port", sizeof("port") - 1, Z_LVAL_P(value));
+        zend_update_property_long(SeasClick_ce, this_obj, "port", sizeof("port") - 1, Z_LVAL_P(value) TSRMLS_CC);
     }
 
     if (php_array_get_value(_ht, "compression", value))
     {
         convert_to_boolean(value);
-        zend_update_property_bool(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, Z_LVAL_P(value));
+        zend_update_property_bool(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, Z_LVAL_P(value) TSRMLS_CC);
     }
 
     zval *host = sc_zend_read_property(SeasClick_ce, this_obj, "host", sizeof("host") - 1, 0);
@@ -272,21 +269,21 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     if (php_array_get_value(_ht, "database", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "database", sizeof("database") - 1, Z_STRVAL_P(value));
+        zend_update_property_string(SeasClick_ce, this_obj, "database", sizeof("database") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetDefaultDatabase(Z_STRVAL_P(value));
     }
 
     if (php_array_get_value(_ht, "user", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "user", sizeof("user") - 1, Z_STRVAL_P(value));
+        zend_update_property_string(SeasClick_ce, this_obj, "user", sizeof("user") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetUser(Z_STRVAL_P(value));
     }
 
     if (php_array_get_value(_ht, "passwd", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "passwd", sizeof("passwd") - 1, Z_STRVAL_P(value));
+        zend_update_property_string(SeasClick_ce, this_obj, "passwd", sizeof("passwd") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetPassword(Z_STRVAL_P(value));
     }
 
@@ -297,7 +294,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         clientMap.insert(std::pair<int, Client*>(key, client));
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 
     RETURN_TRUE;
@@ -394,7 +391,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         );
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
 
@@ -486,7 +483,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         sc_zval_ptr_dtor(&return_should);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
 
@@ -538,7 +535,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
         client->Execute(sql_s);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
 
@@ -551,7 +548,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
         clientMap.erase(key);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0);
+        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }

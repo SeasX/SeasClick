@@ -17,8 +17,35 @@
 */
 
 /* $Id$ */
-#include "typesToPhp.hpp"
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+
+extern "C" {
+#include "php.h"
+#include "php_ini.h"
+#include "ext/standard/info.h"
 #include "php7_wrapper.h"
+};
+
+#include "php_SeasClick.h"
+
+#include "lib/clickhouse-cpp/clickhouse/client.h"
+#include "lib/clickhouse-cpp/clickhouse/error_codes.h"
+#include "lib/clickhouse-cpp/clickhouse/types/type_parser.h"
+#include <iostream>
+
+#include <map>
+#include <sstream>
+#include <iomanip>
+#include <algorithm>
+
+#include "typesToPhp.hpp"
+
+using namespace clickhouse;
+using namespace std;
 
 ColumnRef createColumn(TypeRef type)
 {

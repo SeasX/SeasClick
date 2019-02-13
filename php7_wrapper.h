@@ -54,7 +54,7 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
     }
 }
 
-#define sc_zend_read_property                  zend_read_property
+#define sc_zend_read_property(a, b, c, d, e)                  zend_read_property(a, b, c, d, e TSRMLS_CC)
 
 #define SC_HASHTABLE_FOREACH_START2(ht, k, klen, ktype, entry)\
     zval **tmp = NULL; ulong_t idx;\
