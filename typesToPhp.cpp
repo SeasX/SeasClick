@@ -641,11 +641,15 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
 
         case Type::Code::Float32:
         {
-            auto col = (double)(*columnRef->As<ColumnFloat32>())[row];
+            auto col = (*columnRef->As<ColumnFloat32>())[row];
+            stringstream stream;
+            stream<<col;
+            double d;
+            stream>>d;
             if (is_array) {
-                add_next_index_double(arr, (double)col);
+                add_next_index_double(arr, d);
             } else {
-                sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), (double)col);
+                sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), d);
             }
             break;
         }

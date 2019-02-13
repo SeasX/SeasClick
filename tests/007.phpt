@@ -57,28 +57,28 @@ array(4) {
   [0]=>
   array(2) {
     ["float32_c"]=>
-    float(32.319999694824)
+    float(32.32)
     ["float64_c"]=>
     float(64.64)
   }
   [1]=>
   array(2) {
     ["float32_c"]=>
-    float(32.310001373291)
+    float(32.31)
     ["float64_c"]=>
     float(64.68)
   }
   [2]=>
   array(2) {
     ["float32_c"]=>
-    float(32.319999694824)
+    float(32.32)
     ["float64_c"]=>
     float(0)
   }
   [3]=>
   array(2) {
     ["float32_c"]=>
-    float(32.310001373291)
+    float(32.31)
     ["float64_c"]=>
     float(0)
   }
