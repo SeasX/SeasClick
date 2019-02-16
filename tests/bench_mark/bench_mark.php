@@ -1,4 +1,10 @@
 <?php
+/**
+ * @author ahhhh.wang@gmail.com
+ * Date: 19/02/6 8:23
+ * This performance test demo is compared to phpclickhouse(https://github.com/smi2/phpClickHouse).
+ */
+
 include_once 'vendor/autoload.php';
 
 // $dataCount, $seletCount, $limit

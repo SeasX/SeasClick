@@ -1,5 +1,5 @@
 --TEST--
-SeasClick testArray
+SeasClick testFloat
 --SKIPIF--
 <?php if (!extension_loaded("SeasClick")) print "skip"; ?>
 --FILE--

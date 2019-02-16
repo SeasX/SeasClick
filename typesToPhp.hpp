@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 7                                                        |
+  | SeasClick                                                            |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,12 +12,9 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
-
-/* $Id$ */
-
 using namespace clickhouse;
 using namespace std;
 

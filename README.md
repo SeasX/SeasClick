@@ -1,16 +1,17 @@
-ClickHouse PHP client
+SeasClick
 =====
+[![Build Status](https://travis-ci.org/SeasX/SeasClick.svg?branch=master)](https://travis-ci.org/SeasX/SeasClick)
 
 PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [ClickHouse C++ client](https://github.com/aiwhj/clickhouse-cpp)
 
 ## ClickHouse
 * [What is ClickHouse](https://clickhouse.yandex/docs/en/)
 * [ClickHouse Performance](https://clickhouse.yandex/docs/en/introduction/performance/)
-* [Performance comparison with MySQL](https://clickhouse.yandex/benchmark.html#[%22100000000%22,[%22ClickHouse%22,%22MySQL%22],[%220%22,%221%22,%222%22]])
+* [Performance comparison with MySQL](https://clickhouse.yandex/benchmark.html#[%22100000000%22,[%22ClickHouse%22,%22MySQL%22],[%220%22,%221%22]])
 
 ## Supported data types
 
-* Array(T)，
+* Array(T)
     **Multidimensional arrays are not supported at this time**
 * Date
 * DateTime
@@ -27,6 +28,8 @@ PHP 5.5+
 ## Performance
 ![image](https://github.com/SeasX/SeasClick/raw/master/tests/bench_mark/bench_mark.png)
 
+This performance test [demo](https://github.com/SeasX/SeasClick/blob/master/tests/bench_mark/bench_mark.php) is compared to [phpclickhouse](https://github.com/smi2/phpClickHouse)
+
 ## Install
 ```ssh
 git clone https://github.com/SeasX/SeasClick.git
@@ -38,7 +41,7 @@ phpize
 make && make install
 ```
 
-## [Example](https://github.com/SeasX/SeasClick/tests/test.php)
+## Example
 
 ```php
 <?php
@@ -83,3 +86,7 @@ function testArray($client, $deleteTable = false) {
     }
 }
 ```
+#### [More examples](https://github.com/SeasX/SeasClick/tests/test.php)
+
+## Support
+SeasX Group

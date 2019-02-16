@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 7                                                        |
+  | SeasClick                                                            |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,16 +12,12 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
-
-/* $Id$ */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-
 
 extern "C" {
 #include "php.h"
@@ -36,7 +32,6 @@ extern "C" {
 #include "lib/clickhouse-cpp/clickhouse/error_codes.h"
 #include "lib/clickhouse-cpp/clickhouse/types/type_parser.h"
 #include <iostream>
-
 #include <map>
 #include <sstream>
 #include <iomanip>
@@ -771,7 +766,6 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
     }
 }
-
 
 void zvalToBlock(Block& blockDes, Block& blockSrc, zend_ulong num_key, zval *value_zval)
 {

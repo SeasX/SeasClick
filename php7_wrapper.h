@@ -1,6 +1,25 @@
+/*
+  +----------------------------------------------------------------------+
+  | SeasClick                                                            |
+  +----------------------------------------------------------------------+
+  | Copyright (c) 1997-2018 The PHP Group                                |
+  +----------------------------------------------------------------------+
+  | This source file is subject to version 3.01 of the PHP license,      |
+  | that is bundled with this package in the file LICENSE, and is        |
+  | available through the world-wide-web at the following url:           |
+  | http://www.php.net/license/3_01.txt                                  |
+  | If you did not receive a copy of the PHP license and are unable to   |
+  | obtain it through the world-wide-web, please send a note to          |
+  | license@php.net so we can mail you a copy immediately.               |
+  +----------------------------------------------------------------------+
+  | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
+  +----------------------------------------------------------------------+
+*/
+// PHP7+
 #if PHP_MAJOR_VERSION < 7
 #define IS_TRUE                               1
 #define SC_MAKE_STD_ZVAL(p)                   MAKE_STD_ZVAL(p)
+#define SC_RETURN_STRINGL(k, l) RETURN_STRINGL(k, l, 1)
 #define sc_zval_ptr_dtor                      zval_ptr_dtor
 #define sc_zval_add_ref(a)                       zval_add_ref(&a)
 static inline int sc_add_assoc_long_ex(zval *arg, const char *key, size_t key_len, long value)
@@ -73,10 +92,11 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_add_next_index_stringl             add_next_index_stringl
 
 #else
-
+// PHP5
 #define sc_zend_hash_find   zend_hash_str_find
 #define sc_zend_hash_index_find   zend_hash_index_find
 #define SC_MAKE_STD_ZVAL(p)             zval _stack_zval_##p; p = &(_stack_zval_##p)
+#define SC_RETURN_STRINGL(k, l) RETURN_STRINGL(k, l)
 #define sc_zval_ptr_dtor(p)  zval_ptr_dtor(*p)
 #define sc_zval_add_ref(p)   Z_TRY_ADDREF_P(p)
 #define sc_add_assoc_long_ex                  add_assoc_long_ex
@@ -102,3 +122,12 @@ static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zval *obj
 #endif
 
 #define php_array_get_value(ht, str, v) ((v = sc_zend_hash_find(ht, (char *)str, sizeof(str)-1)) && !ZVAL_IS_NULL(v))
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */

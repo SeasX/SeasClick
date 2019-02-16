@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 7                                                        |
+  | SeasClick                                                            |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,12 +12,9 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
-
-/* $Id$ */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -37,26 +34,14 @@ extern "C" {
 #include "lib/clickhouse-cpp/clickhouse/types/type_parser.h"
 #include "typesToPhp.hpp"
 #include <iostream>
-
 #include <map>
 #include <sstream>
 
 using namespace clickhouse;
 using namespace std;
 
-/* True global resources - no need for thread safety here */
 zend_class_entry *SeasClick_ce;
 map<int, Client*> clientMap;
-
-/* {{{ PHP_INI
- */
-/* Remove comments and fill if you need to have entries in php.ini
-PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("SeasClick.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_SeasClick_globals, SeasClick_globals)
-    STD_PHP_INI_ENTRY("SeasClick.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_SeasClick_globals, SeasClick_globals)
-PHP_INI_END()
-*/
-/* }}} */
 
 #ifdef COMPILE_DL_SEASCLICK
 extern "C" {
@@ -64,21 +49,9 @@ ZEND_GET_MODULE(SeasClick)
 }
 #endif
 
-PHP_FUNCTION(SeasClick_test)
+PHP_FUNCTION(SeasClick_version)
 {
-	char *arg = NULL;
-	size_t arg_len;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
-    try {
-        Client client(ClientOptions().SetHost(arg).SetPingBeforeQuery(true));
-        // RunTests(client);
-    } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
-    }
-    RETURN_TRUE;
+	SC_RETURN_STRINGL(PHP_SEASCLICK_VERSION, strlen(PHP_SEASCLICK_VERSION));
 }
 
 static PHP_METHOD(SEASCLICK_RES_NAME, __construct);
@@ -107,15 +80,13 @@ ZEND_ARG_INFO(0, sql)
 ZEND_ARG_INFO(0, params)
 ZEND_END_ARG_INFO()
 
-/* {{{ SeasClick_functions[]
- *
- * Every user visible function must have an entry in SeasClick_functions[].
- */
+/* {{{ SeasClick_functions[] */
 const zend_function_entry SeasClick_functions[] = {
-	PHP_FE(SeasClick_test,	NULL)		/* For testing, remove later. */
-	PHP_FE_END	/* Must be the last line in SeasClick_functions[] */
+	PHP_FE(SeasClick_version,	NULL)
+	PHP_FE_END
 };
 /* }}} */
+
 const zend_function_entry SeasClick_methods[] =
 {
     PHP_ME(SEASCLICK_RES_NAME, __construct,   SeasCilck_construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
@@ -130,9 +101,6 @@ const zend_function_entry SeasClick_methods[] =
  */
 PHP_MINIT_FUNCTION(SeasClick)
 {
-	/* If you have INI entries, uncomment these lines
-	REGISTER_INI_ENTRIES();
-	*/
     zend_class_entry SeasClick;
     INIT_CLASS_ENTRY(SeasClick, SEASCLICK_RES_NAME, SeasClick_methods);
 #if PHP_VERSION_ID >= 70000
@@ -156,14 +124,10 @@ PHP_MINIT_FUNCTION(SeasClick)
  */
 PHP_MSHUTDOWN_FUNCTION(SeasClick)
 {
-	/* uncomment this line if you have INI entries
-	UNREGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
 
-/* Remove if there's nothing to do at request start */
 /* {{{ PHP_RINIT_FUNCTION
  */
 PHP_RINIT_FUNCTION(SeasClick)
@@ -172,7 +136,6 @@ PHP_RINIT_FUNCTION(SeasClick)
 }
 /* }}} */
 
-/* Remove if there's nothing to do at request end */
 /* {{{ PHP_RSHUTDOWN_FUNCTION
  */
 PHP_RSHUTDOWN_FUNCTION(SeasClick)
@@ -187,11 +150,11 @@ PHP_MINFO_FUNCTION(SeasClick)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "SeasClick support", "enabled");
+    php_info_print_table_row(2, "Version", PHP_SEASCLICK_VERSION);
+    php_info_print_table_row(2, "Author", "SeasX Group[email: ahhhh.wang@gmail.com]");
 	php_info_print_table_end();
 
-	/* Remove comments if you have entries in php.ini
 	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
 
@@ -211,8 +174,8 @@ zend_module_entry SeasClick_module_entry = {
 };
 /* }}} */
 
-/* {{{ proto bool setBasePath(string base_path)
-   Set SeasLog base path */
+/* {{{ proto object __construct(array connectParames)
+ */
 PHP_METHOD(SEASCLICK_RES_NAME, __construct)
 {
     zval *connectParames;
@@ -328,6 +291,8 @@ void getInsertSql(string *sql, char *table_name, zval *columns)
     *sql = "INSERT INTO " + (string)table_name + " ( " + fields_section.str() + " ) VALUES";
 }
 
+/* {{{ proto array select(string sql, array params)
+ */
 PHP_METHOD(SEASCLICK_RES_NAME, select)
 {
     char *sql = NULL;
@@ -394,7 +359,10 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
+/* }}} */
 
+/* {{{ proto array insert(string table, array columns, array values)
+ */
 PHP_METHOD(SEASCLICK_RES_NAME, insert)
 {
     char *table = NULL;
@@ -485,8 +453,12 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
     } catch (const std::exception& e) {
         zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
+    RETURN_TRUE;
 }
+/* }}} */
 
+/* {{{ proto bool execute(string sql, array params)
+ */
 PHP_METHOD(SEASCLICK_RES_NAME, execute)
 {
     char *sql = NULL;
@@ -537,8 +509,12 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
     } catch (const std::exception& e) {
         zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
+    RETURN_TRUE;
 }
+/* }}} */
 
+/* {{{ proto array __destruct()
+ */
 PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
 {
     try {
@@ -552,6 +528,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
     }
     RETURN_TRUE;
 }
+/* }}} */
 
 /*
  * Local variables:

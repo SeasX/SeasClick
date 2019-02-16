@@ -1,4 +1,9 @@
 <?php
+/**
+ * @author ahhhh.wang@gmail.com
+ * Date: 19/02/6 8:23
+ */
+
 $br = (php_sapi_name() == "cli")? "":"<br>";
 
 if(!extension_loaded('SeasClick')) {
@@ -234,6 +239,10 @@ function testFloat($client, $deleteTable = false) {
     }
 }
 
+/**
+ * testUUID
+ * You can insert a UUID with -, but the query is definitely not -
+ */
 function testUUID($client, $deleteTable = false) {
     $client->execute("CREATE TABLE IF NOT EXISTS test.uuid_test (uuid_c UUID, uuid2_c UUID) ENGINE = Memory");
 
@@ -264,6 +273,10 @@ function testUUID($client, $deleteTable = false) {
     }
 }
 
+/**
+ * testDate
+ * Regardless of whether the type is date or datetime is inserted as a timestamp, the query is also a timestamp.
+ */
 function testDate($client, $deleteTable = false) {
     $client->execute("CREATE TABLE IF NOT EXISTS test.date_test (date_c Date, datetime_c DateTime) ENGINE = Memory");
 

@@ -1,5 +1,5 @@
 --TEST--
-SeasClick testArray
+SeasClick testDate
 --SKIPIF--
 <?php if (!extension_loaded("SeasClick")) print "skip"; ?>
 --FILE--
@@ -65,4 +65,3 @@ array(2) {
     int(1548687925)
   }
 }
-

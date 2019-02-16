@@ -1,6 +1,6 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 7                                                        |
+  | SeasClick                                                            |
   +----------------------------------------------------------------------+
   | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
@@ -12,12 +12,9 @@
   | obtain it through the world-wide-web, please send a note to          |
   | license@php.net so we can mail you a copy immediately.               |
   +----------------------------------------------------------------------+
-  | Author:                                                              |
+  | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
-
-/* $Id$ */
-
 #ifdef __cplusplus
 #define __STDC_FORMAT_MACROS
 #endif
@@ -28,7 +25,7 @@
 extern zend_module_entry SeasClick_module_entry;
 #define phpext_SeasClick_ptr &SeasClick_module_entry
 
-#define PHP_SEASCLICK_VERSION "0.1.0" /* Replace with version number for your extension */
+#define PHP_SEASCLICK_VERSION "0.1.0"
 
 #ifdef PHP_WIN32
 #	define PHP_SEASCLICK_API __declspec(dllexport)
@@ -45,20 +42,6 @@ extern "C" {
 }
 
 typedef unsigned long ulong_t;
-/*
-  	Declare any global variables you may need between the BEGIN
-	and END macros here:
-
-ZEND_BEGIN_MODULE_GLOBALS(SeasClick)
-	zend_ulong  global_value;
-	char *global_string;
-ZEND_END_MODULE_GLOBALS(SeasClick)
-*/
-
-/* Always refer to the globals in your function as SEASCLICK_G(variable).
-   You are encouraged to rename these macros something shorter, see
-   examples in any other php module directory.
-*/
 
 #ifdef ZTS
 #define SEASCLICK_G(v) TSRMG(SeasClick_globals_id, zend_SeasClick_globals *, v)
@@ -66,7 +49,7 @@ ZEND_END_MODULE_GLOBALS(SeasClick)
 #define SEASCLICK_G(v) (SeasClick_globals.v)
 #endif
 
-#define SEASCLICK_RES_NAME                        "SeasClick"
+#define SEASCLICK_RES_NAME "SeasClick"
 
 #endif	/* PHP_SEASCLICK_H */
 
