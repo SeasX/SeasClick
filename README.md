@@ -86,7 +86,7 @@ function testArray($client, $deleteTable = false) {
     }
 }
 ```
-#### [More examples](https://github.com/SeasX/SeasClick/tests/test.php)
+#### [More examples](https://github.com/SeasX/SeasClick/blob/master/tests/test.php)
 
 ## Support
 SeasX Group
