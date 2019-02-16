@@ -1,0 +1,44 @@
+language: php
+
+compiler:
+  - gcc
+  - clang
+
+os:
+  - linux
+
+services:
+  - docker
+
+#hosts
+addons:
+  hosts:
+    - clickhouse
+
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1
+  - 7.2
+  - 7.3
+
+notifications:
+  email: whj199649@gmail.com
+
+#clickhouse
+before_install:
+    - docker run -d -p 9000:9000 --name some-clickhouse-server --ulimit nofile=262144:262144 yandex/clickhouse-server
+    - docker ps -a
+    - g++ -v
+    - gcc -v
+    - clang -v
+    - clang++ -v
+
+#Compile
+before_script:
+    - phpize && ./configure && make clean && make
+
+# test
+script:
+    - ./travis/run-tests.sh
