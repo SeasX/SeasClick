@@ -33,9 +33,9 @@ This performance test [demo](https://github.com/SeasX/SeasClick/blob/master/test
 ## Install
 ```ssh
 git clone https://github.com/SeasX/SeasClick.git
+cd SeasClick
 git submodule init
 git submodule update
-cd SeasClick
 phpize
 ./configure
 make && make install
