@@ -257,7 +257,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         clientMap.insert(std::pair<int, Client*>(key, client));
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 
     RETURN_TRUE;
@@ -356,7 +356,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         );
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
 /* }}} */
@@ -451,7 +451,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         sc_zval_ptr_dtor(&return_should);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
@@ -507,7 +507,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
         client->Execute(sql_s);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
@@ -524,7 +524,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
         clientMap.erase(key);
 
     } catch (const std::exception& e) {
-        zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }

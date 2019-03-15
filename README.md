@@ -23,7 +23,7 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
 * UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
 ## Supported PHP version
-PHP 5.5+
+PHP 5.4+
 
 ## Performance
 ![image](https://github.com/SeasX/SeasClick/raw/master/tests/bench_mark/bench_mark.png)
