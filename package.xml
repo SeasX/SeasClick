@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package packagerversion="1.9.4" version="2.0" xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+    <name>SeasClick</name>
+    <channel>pecl.php.net</channel>
+    <summary>An Yandex ClickHouse client driven extension for PHP.</summary>
+    <description>
+        PHP client for Yandex ClickHouse，Based on ClickHouse C++ client.
+    </description>
+    <lead>
+        <name>Chitao Gao</name>
+        <user>neeke</user>
+        <email>neeke@php.net</email>
+        <active>yes</active>
+    </lead>
+    <date>2019-03-24</date>
+    <time>13:00:00</time>
+    <version>
+        <release>0.1.0</release>
+        <api>0.1.0</api>
+    </version>
+    <stability>
+        <release>stable</release>
+        <api>stable</api>
+    </stability>
+    <license uri="http://www.php.net/license/3_01.txt">PHP3.01</license>
+    <notes>
+        - First version for pecl.net
+    </notes>
+    <contents>
+        <dir name="/">
+            <file role="doc" name="CREDITS" />
+            <file role="doc" name="README.md" />
+            <file role="doc" name="LICENSE" />
+            <file role="src" name="config.m4" />
+            <file role="src" name="config.w32" />
+            <file role="src" name="EXPERIMENTAL" />
+            <file role="src" name="php_SeasClick.h" />
+            <file role="src" name="php7_wrapper.h" />
+            <file role="src" name="SeasClick.cpp" />
+            <file role="src" name="typesToPhp.cpp" />
+            <file role="src" name="typesToPhp.hpp" />
+            <dir name="tests">
+                <file role="src" name="001.phpt" />
+                <file role="src" name="002.phpt" />
+                <file role="src" name="003.phpt" />
+                <file role="src" name="004.phpt" />
+                <file role="src" name="005.phpt" />
+                <file role="src" name="006.phpt" />
+                <file role="src" name="007.phpt" />
+                <file role="src" name="008.phpt" />
+                <file role="src" name="009.phpt" />
+                <file role="src" name="test.php" />
+                <dir name="bench_mark">
+                    <file role="src" name="bench_mark.php" />
+                    <file role="src" name="bench_mark.png" />
+                    <file role="doc" name="README.md" />
+                    <file role="src" name="composer.json" />
+                </dir>
+            </dir>
+            <dir name="lib">
+                <dir name="clickhouse-cpp">
+                    <file role="src" name=".buckconfig" />
+                    <file role="src" name="BUCK" />
+                    <file role="doc" name="CMakeLists.txt" />
+                    <file role="doc" name="LICENSE" />
+                    <file role="doc" name="README.md" />
+                    <dir name="clickhouse">
+                        <dir name="base">
+                            <file role="src" name="buffer.h" />
+                            <file role="src" name="coded.cpp" />
+                            <file role="src" name="coded.h" />
+                            <file role="src" name="compressed.cpp" />
+                            <file role="src" name="compressed.h" />
+                            <file role="src" name="input.cpp" />
+                            <file role="src" name="input.h" />
+                            <file role="src" name="output.cpp" />
+                            <file role="src" name="output.h" />
+                            <file role="src" name="platform.cpp" />
+                            <file role="src" name="platform.h" />
+                            <file role="src" name="singleton.h" />
+                            <file role="src" name="socket.cpp" />
+                            <file role="src" name="socket.h" />
+                            <file role="src" name="string_utils.h" />
+                            <file role="src" name="string_view.h" />
+                            <file role="src" name="wire_format.h" />
+                        </dir>
+                        <dir name="columns">
+                            <file role="src" name="array.cpp" />
+                            <file role="src" name="array.h" />
+                            <file role="src" name="column.h" />
+                            <file role="src" name="date.cpp" />
+                            <file role="src" name="date.h" />
+                            <file role="src" name="enum.cpp" />
+                            <file role="src" name="enum.h" />
+                            <file role="src" name="factory.cpp" />
+                            <file role="src" name="factory.h" />
+                            <file role="src" name="nullable.cpp" />
+                            <file role="src" name="nullable.h" />
+                            <file role="src" name="numeric.cpp" />
+                            <file role="src" name="numeric.h" />
+                            <file role="src" name="string.cpp" />
+                            <file role="src" name="string.h" />
+                            <file role="src" name="tuple.cpp" />
+                            <file role="src" name="tuple.h" />
+                            <file role="src" name="utils.h" />
+                            <file role="src" name="uuid.cpp" />
+                            <file role="src" name="uuid.h" />
+                        </dir>
+                        <dir name="types">
+                            <file role="src" name="type_parser.cpp" />
+                            <file role="src" name="type_parser.h" />
+                            <file role="src" name="types.cpp" />
+                            <file role="src" name="types.h" />
+                        </dir>
+                        <file role="src" name="block.cpp" />
+                        <file role="src" name="block.h" />
+                        <file role="src" name="client.cpp" />
+                        <file role="src" name="client.h" />
+                        <file role="src" name="error_codes.h" />
+                        <file role="src" name="exceptions.h" />
+                        <file role="src" name="protocol.h" />
+                        <file role="src" name="query.cpp" />
+                        <file role="src" name="query.h" />
+                    </dir>
+                    <dir name="contrib">
+                        <dir name="cityhash">
+                            <file role="src" name="city.cc" />
+                            <file role="src" name="city.h" />
+                            <file role="src" name="citycrc.h" />
+                            <file role="src" name="config.h" />
+                        </dir>
+                        <dir name="gtest">
+                            <file role="src" name="gtest.h" />
+                            <file role="src" name="gtest-all.cc" />
+                        </dir>
+                        <dir name="lz4">
+                            <file role="src" name="LICENSE" />
+                            <file role="src" name="lz4.c" />
+                            <file role="src" name="lz4.h" />
+                            <file role="src" name="lz4hc.c" />
+                            <file role="src" name="lz4hc.h" />
+                        </dir>
+                    </dir>
+                    <dir name="ut">
+                        <file role="src" name="client_ut.cpp" />
+                        <file role="src" name="columns_ut.cpp" />
+                        <file role="src" name="main.cpp" />
+                        <file role="src" name="type_parser_ut.cpp" />
+                        <file role="src" name="types_ut.cpp" />
+                    </dir>
+                </dir>
+            </dir>
+        </dir>
+    </contents>
+    <dependencies>
+        <required>
+            <php>
+                <min>5.4.0</min>
+            </php>
+            <pearinstaller>
+                <min>1.4.0</min>
+            </pearinstaller>
+        </required>
+    </dependencies>
+    <providesextension>SeasClick</providesextension>
+    <extsrcrelease/>
+    <changelog>
+    </changelog>
+</package>
+
