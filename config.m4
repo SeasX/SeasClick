@@ -89,12 +89,19 @@ if test "$PHP_SEASCLICK" != "no"; then
         lib/clickhouse-cpp/clickhouse/client.cpp \
         lib/clickhouse-cpp/clickhouse/query.cpp"
   SeasClick_header_file="lib/clickhouse-cpp/contrib"
-  
-  PHP_ADD_INCLUDE([$SeasClick_header_file])
+
+  THIS_DIR=`dirname $0`
+  PHP_ADD_INCLUDE($THIS_DIR/lib/clickhouse-cpp/contrib)
   
   PHP_NEW_EXTENSION(SeasClick, $SeasClick_source_file, $ext_shared,,-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/cityhash)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/gtest)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/lz4)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/base)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/types)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/columns)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp)
 fi
