@@ -45,13 +45,13 @@ map<int, Client*> clientMap;
 
 #ifdef COMPILE_DL_SEASCLICK
 extern "C" {
-ZEND_GET_MODULE(SeasClick)
+    ZEND_GET_MODULE(SeasClick)
 }
 #endif
 
 PHP_FUNCTION(SeasClick_version)
 {
-	SC_RETURN_STRINGL(PHP_SEASCLICK_VERSION, strlen(PHP_SEASCLICK_VERSION));
+    SC_RETURN_STRINGL(PHP_SEASCLICK_VERSION, strlen(PHP_SEASCLICK_VERSION));
 }
 
 static PHP_METHOD(SEASCLICK_RES_NAME, __construct);
@@ -81,9 +81,10 @@ ZEND_ARG_INFO(0, params)
 ZEND_END_ARG_INFO()
 
 /* {{{ SeasClick_functions[] */
-const zend_function_entry SeasClick_functions[] = {
-	PHP_FE(SeasClick_version,	NULL)
-	PHP_FE_END
+const zend_function_entry SeasClick_functions[] =
+{
+    PHP_FE(SeasClick_version,	NULL)
+    PHP_FE_END
 };
 /* }}} */
 
@@ -116,7 +117,7 @@ PHP_MINIT_FUNCTION(SeasClick)
     zend_declare_property_bool(SeasClick_ce, "compression", strlen("compression"), false, ZEND_ACC_PROTECTED TSRMLS_CC);
 
     SeasClick_ce->ce_flags = ZEND_ACC_IMPLICIT_PUBLIC;
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -124,7 +125,7 @@ PHP_MINIT_FUNCTION(SeasClick)
  */
 PHP_MSHUTDOWN_FUNCTION(SeasClick)
 {
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -132,7 +133,7 @@ PHP_MSHUTDOWN_FUNCTION(SeasClick)
  */
 PHP_RINIT_FUNCTION(SeasClick)
 {
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -140,7 +141,7 @@ PHP_RINIT_FUNCTION(SeasClick)
  */
 PHP_RSHUTDOWN_FUNCTION(SeasClick)
 {
-	return SUCCESS;
+    return SUCCESS;
 }
 /* }}} */
 
@@ -148,29 +149,30 @@ PHP_RSHUTDOWN_FUNCTION(SeasClick)
  */
 PHP_MINFO_FUNCTION(SeasClick)
 {
-	php_info_print_table_start();
-	php_info_print_table_header(2, "SeasClick support", "enabled");
+    php_info_print_table_start();
+    php_info_print_table_header(2, "SeasClick support", "enabled");
     php_info_print_table_row(2, "Version", PHP_SEASCLICK_VERSION);
     php_info_print_table_row(2, "Author", "SeasX Group[email: ahhhh.wang@gmail.com]");
-	php_info_print_table_end();
+    php_info_print_table_end();
 
-	DISPLAY_INI_ENTRIES();
+    DISPLAY_INI_ENTRIES();
 }
 /* }}} */
 
 /* {{{ SeasClick_module_entry
  */
-zend_module_entry SeasClick_module_entry = {
-	STANDARD_MODULE_HEADER,
-	SEASCLICK_RES_NAME,
-	SeasClick_functions,
-	PHP_MINIT(SeasClick),
-	PHP_MSHUTDOWN(SeasClick),
-	PHP_RINIT(SeasClick),
-	PHP_RSHUTDOWN(SeasClick),
-	PHP_MINFO(SeasClick),
-	PHP_SEASCLICK_VERSION,
-	STANDARD_MODULE_PROPERTIES
+zend_module_entry SeasClick_module_entry =
+{
+    STANDARD_MODULE_HEADER,
+    SEASCLICK_RES_NAME,
+    SeasClick_functions,
+    PHP_MINIT(SeasClick),
+    PHP_MSHUTDOWN(SeasClick),
+    PHP_RINIT(SeasClick),
+    PHP_RSHUTDOWN(SeasClick),
+    PHP_MINFO(SeasClick),
+    PHP_SEASCLICK_VERSION,
+    STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
 
@@ -181,14 +183,15 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     zval *connectParames;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &connectParames) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &connectParames) == FAILURE)
+    {
         return;
     }
 #else
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 1)
-        Z_PARAM_ARRAY(connectParames)
+    Z_PARAM_ARRAY(connectParames)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
@@ -222,10 +225,11 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     zval *compression = sc_zend_read_property(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, 0);
 
     ClientOptions Options = ClientOptions()
-                                .SetHost(Z_STRVAL_P(host))
-                                .SetPort(Z_LVAL_P(port))
-                                .SetPingBeforeQuery(false);
-    if (Z_TYPE_P(compression) == IS_TRUE) {
+                            .SetHost(Z_STRVAL_P(host))
+                            .SetPort(Z_LVAL_P(port))
+                            .SetPingBeforeQuery(false);
+    if (Z_TYPE_P(compression) == IS_TRUE)
+    {
         Options = Options.SetCompressionMethod(CompressionMethod::LZ4);
     }
 
@@ -250,13 +254,16 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         Options = Options.SetPassword(Z_STRVAL_P(value));
     }
 
-    try {
+    try
+    {
         Client *client = new Client(Options);
         int key = Z_OBJ_HANDLE(*this_obj);
 
         clientMap.insert(std::pair<int, Client*>(key, client));
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 
@@ -280,9 +287,12 @@ void getInsertSql(string *sql, char *table_name, zval *columns)
     SC_HASHTABLE_FOREACH_START2(columns_ht, key, keylen, keytype, pzval)
     {
         convert_to_string(pzval);
-        if (index >= (count - 1)) {
+        if (index >= (count - 1))
+        {
             fields_section << (string)Z_STRVAL_P(pzval);
-        } else {
+        }
+        else
+        {
             fields_section << (string)Z_STRVAL_P(pzval) << ",";
         }
         index++;
@@ -300,24 +310,28 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
     zval* params = NULL;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &sql, &l_sql, &params) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &sql, &l_sql, &params) == FAILURE)
+    {
         return;
     }
 #else
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_STRING(sql, l_sql)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(params)
+    Z_PARAM_STRING(sql, l_sql)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ARRAY(params)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
 #endif
-    try {
+    try
+    {
         string sql_s = (string)sql;
-        if (ZEND_NUM_ARGS() > 1 && params != NULL) {
-            if (Z_TYPE_P(params) != IS_ARRAY) {
+        if (ZEND_NUM_ARGS() > 1 && params != NULL)
+        {
+            if (Z_TYPE_P(params) != IS_ARRAY)
+            {
                 throw std::runtime_error("The second argument to the select function must be an array");
             }
 
@@ -341,21 +355,25 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         array_init(return_value);
 
         client->Select(sql_s, [return_value](const Block& block)
+        {
+            zval *return_tmp;
+            for (size_t row = 0; row < block.GetRowCount(); ++row)
             {
-                zval *return_tmp;
-                for (size_t row = 0; row < block.GetRowCount(); ++row) {
-                    SC_MAKE_STD_ZVAL(return_tmp);
-                    array_init(return_tmp);
-                    for (size_t column = 0; column < block.GetColumnCount(); ++column) {
-                        string column_name = block.GetColumnName(column);
-                        convertToZval(return_tmp, block[column], row, column_name, 0);
-                    }
-                    add_next_index_zval(return_value, return_tmp);
+                SC_MAKE_STD_ZVAL(return_tmp);
+                array_init(return_tmp);
+                for (size_t column = 0; column < block.GetColumnCount(); ++column)
+                {
+                    string column_name = block.GetColumnName(column);
+                    convertToZval(return_tmp, block[column], row, column_name, 0);
                 }
+                add_next_index_zval(return_value, return_tmp);
             }
-        );
+        }
+                      );
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
 }
@@ -373,22 +391,24 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
     string sql;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "szz", &table, &l_table, &columns, &values) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "szz", &table, &l_table, &columns, &values) == FAILURE)
+    {
         return;
     }
 #else
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(3, 3)
-        Z_PARAM_STRING(table, l_table)
-        Z_PARAM_ARRAY(columns)
-        Z_PARAM_ARRAY(values)
+    Z_PARAM_STRING(table, l_table)
+    Z_PARAM_ARRAY(columns)
+    Z_PARAM_ARRAY(values)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
 #endif
 
-    try {
+    try
+    {
         HashTable *columns_ht = Z_ARRVAL_P(columns);
         HashTable *values_ht = Z_ARRVAL_P(values);
         size_t columns_count = zend_hash_num_elements(columns_ht);
@@ -411,11 +431,13 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
 
             SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, pzval)
             {
-                if (Z_TYPE_P(pzval) != IS_ARRAY) {
+                if (Z_TYPE_P(pzval) != IS_ARRAY)
+                {
                     throw std::runtime_error("The insert function needs to pass in a two-dimensional array");
                 }
                 fzval = sc_zend_hash_index_find(Z_ARRVAL_P(pzval), i);
-                if (NULL == fzval) {
+                if (NULL == fzval)
+                {
                     throw std::runtime_error("The number of parameters inserted per line is inconsistent");
                 }
                 sc_zval_add_ref(fzval);
@@ -432,11 +454,12 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         int key = Z_OBJ_HANDLE(*getThis());
         Client *client = clientMap.at(key);
 
-        client->InsertQuery(sql, [&blockQuery](const Block& block) {
-                blockQuery = block;
-            }
-        );
-        
+        client->InsertQuery(sql, [&blockQuery](const Block& block)
+        {
+            blockQuery = block;
+        }
+                           );
+
         Block blockInsert;
         size_t index = 0;
 
@@ -450,7 +473,9 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         client->InsertData(blockInsert);
         sc_zval_ptr_dtor(&return_should);
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
@@ -466,25 +491,29 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
     zval* params = NULL;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &sql, &l_sql, &params) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &sql, &l_sql, &params) == FAILURE)
+    {
         return;
     }
 #else
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 2)
-        Z_PARAM_STRING(sql, l_sql)
-        Z_PARAM_OPTIONAL
-        Z_PARAM_ARRAY(params)
+    Z_PARAM_STRING(sql, l_sql)
+    Z_PARAM_OPTIONAL
+    Z_PARAM_ARRAY(params)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
 #endif
 
-    try {
+    try
+    {
         string sql_s = (string)sql;
-        if (ZEND_NUM_ARGS() > 1 && params != NULL) {
-            if (Z_TYPE_P(params) != IS_ARRAY) {
+        if (ZEND_NUM_ARGS() > 1 && params != NULL)
+        {
+            if (Z_TYPE_P(params) != IS_ARRAY)
+            {
                 throw std::runtime_error("The second argument to the select function must be an array");
             }
 
@@ -506,7 +535,9 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
         Client *client = clientMap.at(key);
         client->Execute(sql_s);
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
@@ -517,13 +548,16 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
  */
 PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
 {
-    try {
+    try
+    {
         int key = Z_OBJ_HANDLE(*getThis());
         Client *client = clientMap.at(key);
         delete client;
         clientMap.erase(key);
 
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
