@@ -17,6 +17,8 @@ public:
         return columns_[n];
     }
 
+    size_t tupleSize();
+
 public:
     /// Appends content of given column to the end of current one.
     void Append(ColumnRef) override { }

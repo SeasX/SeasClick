@@ -845,7 +845,23 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
 
     case Type::Code::Tuple:
     {
-        throw std::runtime_error("can't support Tuple");
+        auto tuple = columnRef->As<ColumnTuple>();
+        zval *return_tmp;
+        SC_MAKE_STD_ZVAL(return_tmp);
+        array_init(return_tmp);
+        for (size_t i = 0; i < tuple->tupleSize(); ++i)
+        {
+            convertToZval(return_tmp, (*tuple)[i], 0, "tuple", 1);
+        }
+        if (is_array)
+        {
+            add_next_index_zval(arr, return_tmp);
+        }
+        else
+        {
+            sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+        }
+        break;
     }
 
     case Type::Code::Void:

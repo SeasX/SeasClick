@@ -33,6 +33,7 @@ function clientTest($config)
     testUUID($client, $deleteTable);
     testDate($client, $deleteTable);
     testMulInstance($config, $deleteTable);
+    testTuple($client, $deleteTable);
 }
 
 function testMulInstance($config, $deleteTable = false) {
@@ -52,6 +53,11 @@ function testMulInstance($config, $deleteTable = false) {
     unset($client2);
     unset($client3);
     unset($client4);
+}
+
+function testTuple($client, $deleteTable = false) {
+    $result = $client->select("SELECT tuple(1,'a', 5, 'b') AS a");
+    var_dump($result);
 }
 
 function testArray($client, $deleteTable = false) {

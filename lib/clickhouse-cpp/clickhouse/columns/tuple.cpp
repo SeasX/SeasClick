@@ -20,6 +20,10 @@ size_t ColumnTuple::Size() const {
     return columns_.empty() ? 0 : columns_[0]->Size();
 }
 
+size_t ColumnTuple::tupleSize() {
+    return columns_.empty() ? 0 : columns_.size();
+}
+
 bool ColumnTuple::Load(CodedInputStream* input, size_t rows) {
     for (auto ci = columns_.begin(); ci != columns_.end(); ++ci) {
         if (!(*ci)->Load(input, rows)) {
