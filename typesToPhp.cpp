@@ -851,7 +851,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         array_init(return_tmp);
         for (size_t i = 0; i < tuple->tupleSize(); ++i)
         {
-            convertToZval(return_tmp, (*tuple)[i], 0, "tuple", 1);
+            convertToZval(return_tmp, (*tuple)[i], row, "tuple", 1);
         }
         if (is_array)
         {
