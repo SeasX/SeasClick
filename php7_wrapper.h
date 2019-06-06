@@ -15,6 +15,11 @@
   | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
+// PHP7.4 + 
+#if !defined(ZEND_ACC_IMPLICIT_PUBLIC)
+# define ZEND_ACC_IMPLICIT_PUBLIC ZEND_ACC_PUBLIC
+#endif
+
 // PHP7+
 #if PHP_MAJOR_VERSION < 7
 
