@@ -548,7 +548,62 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
     case Type::Code::Tuple:
     {
-        throw std::runtime_error("can't support Tuple");
+        size_t values_count = zend_hash_num_elements(values_ht);
+
+        zval *return_should;
+        SC_MAKE_STD_ZVAL(return_should);
+        array_init(return_should);
+
+        zval *fzval;
+        zval *pzval;
+
+        zval *return_tmp;
+        for(size_t i = 0; i < values_count; i++)
+        {
+            SC_MAKE_STD_ZVAL(return_tmp);
+            array_init(return_tmp);
+
+            SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, pzval)
+            {
+                if (Z_TYPE_P(pzval) != IS_ARRAY)
+                {
+                    throw std::runtime_error("The insert function needs to pass in a two-dimensional array");
+                }
+                fzval = sc_zend_hash_index_find(Z_ARRVAL_P(pzval), i);
+                if (NULL == fzval)
+                {
+                    throw std::runtime_error("The number of parameters inserted per line is inconsistent");
+                }
+                sc_zval_add_ref(fzval);
+                add_next_index_zval(return_tmp, fzval);
+            }
+            SC_HASHTABLE_FOREACH_END();
+
+            add_next_index_zval(return_should, return_tmp);
+        }
+
+        auto tupleType = type->GetTupleType();
+        
+        std::vector<ColumnRef> columns;
+
+        int tupleTypeIndex = 0;
+
+        SC_HASHTABLE_FOREACH_START2(Z_ARRVAL_P(return_should), str_key, str_keylen, keytype, array_value)
+        {
+            if (Z_TYPE_P(array_value) != IS_ARRAY)
+            {
+                throw std::runtime_error("The inserted data is not an array type");
+            }
+
+            columns.push_back(insertColumn(tupleType[tupleTypeIndex], array_value));
+            tupleTypeIndex++;
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        sc_zval_ptr_dtor(&return_should);
+
+        return std::make_shared<ColumnTuple>(columns);
+        break;
     }
 
     case Type::Code::Void:

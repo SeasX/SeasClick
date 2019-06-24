@@ -22,25 +22,56 @@ function clientTest($config)
 }
 
 function testTuple($client, $deleteTable = false) {
-    $result = $client->select("SELECT tuple(1,'a', 5, 'b') AS a");
+    $client->execute("CREATE TABLE IF NOT EXISTS test.tuple_test (tuple_c Tuple(id UInt64, name String), int_c UInt64, string_c String) ENGINE = Memory");
+
+    $client->insert("test.tuple_test", [
+        'tuple_c', 'int_c', 'string_c'
+    ], [
+        [[1, 'one'], 1, 'one'],
+        [[2, 'two'], 2, 'two'],
+    ]);
+    $result = $client->select("SELECT {select} FROM {table}", [
+        'select' => 'tuple_c, int_c, string_c',
+        'table' => 'test.tuple_test'
+    ]);
     var_dump($result);
+
+    if ($deleteTable) {
+        $client->execute("DROP TABLE {table}", [
+            'table' => 'test.tuple_test'
+        ]);
+    }
 }
 
 ?>
 --EXPECT--
-array(1) {
+array(2) {
   [0]=>
-  array(1) {
-    ["a"]=>
-    array(4) {
+  array(3) {
+    ["tuple_c"]=>
+    array(2) {
       [0]=>
       int(1)
       [1]=>
-      string(1) "a"
-      [2]=>
-      int(5)
-      [3]=>
-      string(1) "b"
+      string(3) "one"
     }
+    ["int_c"]=>
+    int(1)
+    ["string_c"]=>
+    string(3) "one"
+  }
+  [1]=>
+  array(3) {
+    ["tuple_c"]=>
+    array(2) {
+      [0]=>
+      int(2)
+      [1]=>
+      string(3) "two"
+    }
+    ["int_c"]=>
+    int(2)
+    ["string_c"]=>
+    string(3) "two"
   }
 }
