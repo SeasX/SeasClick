@@ -61,7 +61,7 @@ if test "$PHP_SEASCLICK" != "no"; then
   PHP_REQUIRE_CXX()
   PHP_SUBST(SEASCLICK_SHARED_LIBADD)
   PHP_ADD_LIBRARY(stdc++, 1, SEASCLICK_SHARED_LIBADD)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=c++11"
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=c++17"
   SeasClick_source_file="SeasClick.cpp \
         typesToPhp.cpp \
         lib/clickhouse-cpp/clickhouse/base/coded.cpp \
@@ -72,6 +72,7 @@ if test "$PHP_SEASCLICK" != "no"; then
         lib/clickhouse-cpp/clickhouse/base/socket.cpp \
         lib/clickhouse-cpp/clickhouse/columns/array.cpp \
         lib/clickhouse-cpp/clickhouse/columns/date.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/decimal.cpp \
         lib/clickhouse-cpp/clickhouse/columns/enum.cpp \
         lib/clickhouse-cpp/clickhouse/columns/factory.cpp \
         lib/clickhouse-cpp/clickhouse/columns/nullable.cpp \

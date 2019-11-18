@@ -19,7 +19,8 @@
 #include "config.h"
 #endif
 
-extern "C" {
+extern "C"
+{
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
@@ -117,20 +118,20 @@ ColumnRef createColumn(TypeRef type)
 
     case Type::Code::Array:
     {
-        return std::make_shared<ColumnArray>(createColumn(type->GetItemType()));
+        return std::make_shared<ColumnArray>(createColumn(type->As<ArrayType>()->GetItemType()));
     }
 
     case Type::Code::Enum8:
     {
         std::vector<Type::EnumItem> enum_items;
 
-        auto enumType = EnumType(type);
+        auto enumType = type->As<EnumType>();
 
-        for (auto ei = enumType.BeginValueToName(); ; )
+        for (auto ei = enumType->BeginValueToName();;)
         {
             enum_items.push_back(
-                Type::EnumItem {ei->second, (int8_t)ei->first});
-            if (++ei == enumType.EndValueToName())
+                Type::EnumItem{ei->second, (int8_t)ei->first});
+            if (++ei == enumType->EndValueToName())
             {
                 break;
             }
@@ -142,13 +143,13 @@ ColumnRef createColumn(TypeRef type)
     {
         std::vector<Type::EnumItem> enum_items;
 
-        auto enumType = EnumType(type);
+        auto enumType = type->As<EnumType>();
 
-        for (auto ei = enumType.BeginValueToName(); ; )
+        for (auto ei = enumType->BeginValueToName();;)
         {
             enum_items.push_back(
-                Type::EnumItem {ei->second, (int16_t)ei->first});
-            if (++ei == enumType.EndValueToName())
+                Type::EnumItem{ei->second, (int16_t)ei->first});
+            if (++ei == enumType->EndValueToName())
             {
                 break;
             }
@@ -159,7 +160,7 @@ ColumnRef createColumn(TypeRef type)
 
     case Type::Code::Nullable:
     {
-        return std::make_shared<ColumnNullable>(createColumn(type->GetNestedType()), std::make_shared<ColumnUInt8>());
+        return std::make_shared<ColumnNullable>(createColumn(type->As<NullableType>()->GetNestedType()), std::make_shared<ColumnUInt8>());
     }
 
     case Type::Code::Tuple:
@@ -230,6 +231,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         break;
     }
     case Type::Code::UInt32:
+    case Type::Code::IPv4:
     {
         auto value = std::make_shared<ColumnUInt32>();
 
@@ -377,6 +379,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         return value;
     }
     case Type::Code::FixedString:
+    case Type::Code::IPv6:
     {
         string typeName = type->GetName();
         typeName.erase(typeName.find("FixedString("), 12);
@@ -424,13 +427,14 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
     case Type::Code::Array:
     {
-        if (type->GetItemType()->GetCode() == Type::Array)
+        auto arrType = type->As<ArrayType>();
+        if (arrType->GetItemType()->GetCode() == Type::Array)
         {
             throw std::runtime_error("can't support Multidimensional Arrays");
         }
 
-        auto value = std::make_shared<ColumnArray>(createColumn(type->GetItemType()));
-        auto child = createColumn(type->GetItemType());
+        auto value = std::make_shared<ColumnArray>(createColumn(arrType->GetItemType()));
+        auto child = createColumn(arrType->GetItemType());
 
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
@@ -439,7 +443,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
                 throw std::runtime_error("The inserted data is not an array type");
             }
 
-            child->Append(insertColumn(type->GetItemType(), array_value));
+            child->Append(insertColumn(arrType->GetItemType(), array_value));
 
             value->AppendAsColumn(child);
             child->Clear();
@@ -454,13 +458,13 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
     {
         std::vector<Type::EnumItem> enum_items;
 
-        auto enumType = EnumType(type);
+        auto enumType = type->As<EnumType>();
 
-        for (auto ei = enumType.BeginValueToName(); ; )
+        for (auto ei = enumType->BeginValueToName();;)
         {
             enum_items.push_back(
-                Type::EnumItem {ei->second, (int8_t)ei->first});
-            if (++ei == enumType.EndValueToName())
+                Type::EnumItem{ei->second, (int8_t)ei->first});
+            if (++ei == enumType->EndValueToName())
             {
                 break;
             }
@@ -490,13 +494,13 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
     {
         std::vector<Type::EnumItem> enum_items;
 
-        auto enumType = EnumType(type);
+        auto enumType = type->As<EnumType>();
 
-        for (auto ei = enumType.BeginValueToName(); ; )
+        for (auto ei = enumType->BeginValueToName();;)
         {
             enum_items.push_back(
-                Type::EnumItem {ei->second, (int16_t)ei->first});
-            if (++ei == enumType.EndValueToName())
+                Type::EnumItem{ei->second, (int16_t)ei->first});
+            if (++ei == enumType->EndValueToName())
             {
                 break;
             }
@@ -540,7 +544,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         }
         SC_HASHTABLE_FOREACH_END();
 
-        ColumnRef child = insertColumn(type->GetNestedType(), value_zval);
+        ColumnRef child = insertColumn(type->As<NullableType>()->GetNestedType(), value_zval);
 
         return std::make_shared<ColumnNullable>(child, nulls);
         break;
@@ -558,7 +562,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         zval *pzval;
 
         zval *return_tmp;
-        for(size_t i = 0; i < values_count; i++)
+        for (size_t i = 0; i < values_count; i++)
         {
             SC_MAKE_STD_ZVAL(return_tmp);
             array_init(return_tmp);
@@ -582,8 +586,8 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
             add_next_index_zval(return_should, return_tmp);
         }
 
-        auto tupleType = type->GetTupleType();
-        
+        auto tupleType = type->As<TupleType>()->GetTupleType();
+
         std::vector<ColumnRef> columns;
 
         int tupleTypeIndex = 0;
@@ -606,6 +610,55 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         break;
     }
 
+    case Type::Code::Decimal32:
+    {
+        auto value = type->As<DecimalType>();
+
+        auto result = std::make_shared<ColumnDecimal>(9, value->GetScale());
+
+        SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
+        {
+            convert_to_string(array_value);
+            result->Append((string)Z_STRVAL_P(array_value));
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        return result;
+        break;
+    }
+    case Type::Code::Decimal64:
+    {
+        auto value = type->As<DecimalType>();
+
+        auto result = std::make_shared<ColumnDecimal>(18, value->GetScale());
+
+        SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
+        {
+            convert_to_string(array_value);
+            result->Append((string)Z_STRVAL_P(array_value));
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        return result;
+        break;
+    }
+    case Type::Code::Decimal128:
+    {
+        auto value = type->As<DecimalType>();
+
+        auto result = std::make_shared<ColumnDecimal>(38, value->GetScale());
+
+        SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
+        {
+            convert_to_string(array_value);
+            result->Append((string)Z_STRVAL_P(array_value));
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        return result;
+        break;
+    }
+
     case Type::Code::Void:
     {
         throw std::runtime_error("can't support Void");
@@ -615,7 +668,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
     throw std::runtime_error("insertColumn runtime error.");
 }
 
-void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array)
+void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column_name, int8_t is_array)
 {
     switch (columnRef->Type()->GetCode())
     {
@@ -659,6 +712,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         break;
     }
     case Type::Code::UInt32:
+    case Type::Code::IPv4:
     {
         auto col = (*columnRef->As<ColumnUInt32>())[row];
         if (is_array)
@@ -724,21 +778,34 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         break;
     }
+    case Type::Code::Int128:
+    {
+        auto col = (*columnRef->As<ColumnInt128>())[row];
+        if (is_array)
+        {
+            add_next_index_long(arr, (long)col);
+        }
+        else
+        {
+            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+        }
+        break;
+    }
 
     case Type::Code::UUID:
     {
         stringstream first;
         stringstream second;
         auto col = (*columnRef->As<ColumnUUID>())[row];
-        first<<std::setw(16)<<std::setfill('0')<<hex<<col.first;
-        second<<std::setw(16)<<std::setfill('0')<<hex<<col.second;
+        first << std::setw(16) << std::setfill('0') << hex << col.first;
+        second << std::setw(16) << std::setfill('0') << hex << col.second;
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char*)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
         }
         break;
     }
@@ -747,9 +814,9 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
     {
         auto col = (*columnRef->As<ColumnFloat32>())[row];
         stringstream stream;
-        stream<<col;
+        stream << col;
         double d;
-        stream>>d;
+        stream >> d;
         if (is_array)
         {
             add_next_index_double(arr, d);
@@ -779,24 +846,25 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto col = (*columnRef->As<ColumnString>())[row];
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char*)col.c_str(), col.length(), 1);
+            sc_add_next_index_stringl(arr, (char *)col.c_str(), col.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), col.length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)col.c_str(), col.length(), 1);
         }
         break;
     }
     case Type::Code::FixedString:
+    case Type::Code::IPv6:
     {
         auto col = (*columnRef->As<ColumnFixedString>())[row];
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char*)col.c_str(), col.length(), 1);
+            sc_add_next_index_stringl(arr, (char *)col.c_str(), col.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), strlen((char*)col.c_str()), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)col.c_str(), strlen((char *)col.c_str()), 1);
         }
         break;
     }
@@ -855,11 +923,11 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto array = columnRef->As<ColumnEnum8>();
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
         }
         break;
     }
@@ -868,11 +936,11 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto array = columnRef->As<ColumnEnum16>();
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
         }
         break;
     }
@@ -904,7 +972,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         zval *return_tmp;
         SC_MAKE_STD_ZVAL(return_tmp);
         array_init(return_tmp);
-        for (size_t i = 0; i < tuple->tupleSize(); ++i)
+        for (size_t i = 0; i < tuple->Size(); ++i)
         {
             convertToZval(return_tmp, (*tuple)[i], row, "tuple", 1);
         }
@@ -919,6 +987,23 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         break;
     }
 
+    case Type::Code::Decimal32:
+    case Type::Code::Decimal64:
+    case Type::Code::Decimal128:
+    {
+        auto col = columnRef->As<ColumnDecimal>();
+        auto str = int128_to_string(col->At(row), col->GetScale());
+        if (is_array)
+        {
+            sc_add_next_index_stringl(arr, (char *)str.c_str(), str.length(), 1);
+        }
+        else
+        {
+            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)str.c_str(), str.length(), 1);
+        }
+        break;
+    }
+
     case Type::Code::Void:
     {
         throw std::runtime_error("can't support Void");
@@ -926,7 +1011,43 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
     }
 }
 
-void zvalToBlock(Block& blockDes, Block& blockSrc, zend_ulong num_key, zval *value_zval)
+std::string int128_to_string(Int128 value, size_t scale)
+{
+    std::string result;
+    const bool sign = value >= 0;
+
+    if (!sign)
+    {
+        value = -value;
+    }
+
+    size_t i = 0;
+    while (value)
+    {
+        if (i == scale)
+        {
+            result += static_cast<char>('.');
+        }
+        result += static_cast<char>(value % 10) + '0';
+        value /= 10;
+        i++;
+    }
+
+    if (result.empty())
+    {
+        result = "0";
+    }
+    else if (!sign)
+    {
+        result.push_back('-');
+    }
+
+    std::reverse(result.begin(), result.end());
+
+    return result;
+};
+
+void zvalToBlock(Block &blockDes, Block &blockSrc, zend_ulong num_key, zval *value_zval)
 {
     ColumnRef column = insertColumn(blockSrc[num_key]->Type(), value_zval);
 

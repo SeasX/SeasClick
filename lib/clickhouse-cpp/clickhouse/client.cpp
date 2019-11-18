@@ -170,6 +170,8 @@ Client::Impl::Impl(const ClientOptions& opts)
     , buffered_output_(&socket_output_)
     , output_(&buffered_output_)
 {
+    // TODO: throw on big-endianness of platform
+
     for (int i = 0; ; ) {
         try {
             ResetConnection();
@@ -315,6 +317,12 @@ void Client::Impl::ResetConnection() {
 
     if (s.Closed()) {
         throw std::system_error(errno, std::system_category());
+    }
+
+    if(options_.tcp_keepalive){
+        s.SetTcpKeepAlive(options_.tcp_keepalive_idle,
+                          options_.tcp_keepalive_intvl,
+                          options_.tcp_keepalive_cnt);
     }
 
     socket_ = std::move(s);

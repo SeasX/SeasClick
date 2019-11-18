@@ -28,6 +28,11 @@ const std::string& ColumnFixedString::operator [] (size_t n) const {
     return data_[n];
 }
 
+size_t ColumnFixedString::FixedSize() const
+{
+       return string_size_;
+}
+
 void ColumnFixedString::Append(ColumnRef column) {
     if (auto col = column->As<ColumnFixedString>()) {
         if (string_size_ == col->string_size_) {
@@ -37,6 +42,8 @@ void ColumnFixedString::Append(ColumnRef column) {
 }
 
 bool ColumnFixedString::Load(CodedInputStream* input, size_t rows) {
+    data_.reserve(data_.size() + rows);
+
     for (size_t i = 0; i < rows; ++i) {
         std::string s;
         s.resize(string_size_);
@@ -45,7 +52,7 @@ bool ColumnFixedString::Load(CodedInputStream* input, size_t rows) {
             return false;
         }
 
-        data_.push_back(s);
+        data_.emplace_back(std::move(s));
     }
 
     return true;
@@ -106,6 +113,8 @@ void ColumnString::Append(ColumnRef column) {
 }
 
 bool ColumnString::Load(CodedInputStream* input, size_t rows) {
+    data_.reserve(data_.size() + rows);
+
     for (size_t i = 0; i < rows; ++i) {
         std::string s;
 
@@ -113,7 +122,7 @@ bool ColumnString::Load(CodedInputStream* input, size_t rows) {
             return false;
         }
 
-        data_.push_back(s);
+        data_.emplace_back(std::move(s));
     }
 
     return true;
