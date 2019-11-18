@@ -15,6 +15,7 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
     **Multidimensional arrays are not supported at this time**
 * Date
 * DateTime
+* Decimal32, Decimal64, Decimal128
 * Enum8, Enum16
 * FixedString(N)
 * Float32, Float64
