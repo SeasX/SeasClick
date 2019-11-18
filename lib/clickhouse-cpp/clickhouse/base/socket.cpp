@@ -6,7 +6,6 @@
 #include <system_error>
 #include <unordered_set>
 #include <memory.h>
-#include "socket_hook.h"
 
 #if !defined(_win_)
 #   include <errno.h>
