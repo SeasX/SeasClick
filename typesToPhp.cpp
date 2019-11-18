@@ -992,7 +992,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
     case Type::Code::Decimal128:
     {
         auto col = columnRef->As<ColumnDecimal>();
-        auto str = int128_to_string(col->At(row), col->GetScale());
+        auto str = int128_to_string(col->At(row), col->Type()->As<DecimalType>()->GetScale());
         if (is_array)
         {
             sc_add_next_index_stringl(arr, (char *)str.c_str(), str.length(), 1);
