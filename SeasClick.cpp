@@ -153,6 +153,11 @@ PHP_MINFO_FUNCTION(SeasClick)
     php_info_print_table_header(2, "SeasClick support", "enabled");
     php_info_print_table_row(2, "Version", PHP_SEASCLICK_VERSION);
     php_info_print_table_row(2, "Author", "SeasX Group[email: ahhhh.wang@gmail.com]");
+    #ifdef USE_SWOOLE
+    php_info_print_table_row(2, "Swoole", "enabled");
+    #else
+    php_info_print_table_row(2, "Swoole", "disable");
+    #endif
     php_info_print_table_end();
 
     DISPLAY_INI_ENTRIES();

@@ -16,6 +16,8 @@ dnl Otherwise use enable:
 PHP_ARG_ENABLE(SeasClick, whether to enable SeasClick support,
 Make sure that the comment is aligned:
 [  --enable-SeasClick           Enable SeasClick support])
+PHP_ARG_ENABLE(swoole, enable swoole support,
+[  --enable-swoole            Use swoole?], no, no)
 
 if test "$PHP_SEASCLICK" != "no"; then
   dnl Write more examples of tests here...
@@ -58,6 +60,11 @@ if test "$PHP_SEASCLICK" != "no"; then
   dnl ])
   dnl
   dnl PHP_SUBST(SEASCLICK_SHARED_LIBADD)
+
+  if test "$PHP_SWOOLE" = "yes"; then
+      AC_DEFINE(USE_SWOOLE, 1, [enable swoole support])
+      CXXFLAGS="$CXXFLAGS -DUSE_SWOOLE"
+  fi
   PHP_REQUIRE_CXX()
   PHP_SUBST(SEASCLICK_SHARED_LIBADD)
   PHP_ADD_LIBRARY(stdc++, 1, SEASCLICK_SHARED_LIBADD)
