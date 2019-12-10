@@ -270,13 +270,21 @@ SOCKET SocketConnect(const NetworkAddress& addr) {
                     getsockopt(s, SOL_SOCKET, SO_ERROR, (char*)&err, &len);
 
                     if (!err) {
+                        #if defined USE_SWOOLE
+                        SetNonBlock(s, true);
+                        #else
                         SetNonBlock(s, false);
+                        #endif
                         return s;
                     }
                 }
             }
         } else {
+            #if defined USE_SWOOLE
+            SetNonBlock(s, true);
+            #else
             SetNonBlock(s, false);
+            #endif
             return s;
         }
     }
