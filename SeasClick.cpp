@@ -137,7 +137,7 @@ PHP_MINFO_FUNCTION(SeasClick)
     php_info_print_table_start();
     php_info_print_table_header(2, "SeasClick support", "enabled");
     php_info_print_table_row(2, "Version", PHP_SEASCLICK_VERSION);
-    php_info_print_table_row(2, "Author", "SeasX Group[email: ahhhh.wang@gmail.com]");
+    php_info_print_table_row(2, "Author", "SeasX Group[email: ahhhh.wang@gmail.com], Ilia Alshanetsky");
     php_info_print_table_end();
 
     DISPLAY_INI_ENTRIES();
