@@ -354,10 +354,32 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
             zval *return_tmp;
             for (size_t row = 0; row < block.GetRowCount(); ++row)
             {
+                if (fetch_mode & SC_FETCH_KEY_PAIR) {
+                    if (block.GetColumnCount() < 2) {
+                        throw std::runtime_error("Key pair mode requires at least 2 columns to be present");
+                    }
+                    zval *col1, *col2;
+                    SC_MAKE_STD_ZVAL(col1);
+                    SC_MAKE_STD_ZVAL(col2);
+
+                    convertToZval(col1, block[0], row, "", 0, fetch_mode|SC_FETCH_ONE);
+                    convertToZval(col2, block[1], row, "", 0, fetch_mode|SC_FETCH_ONE);
+
+                    if (Z_TYPE_P(col1) == IS_LONG) {
+                         zend_hash_index_update(Z_ARRVAL_P(return_value), Z_LVAL_P(col1), col2);
+                    } else {
+                        convert_to_string(col1);
+                        zend_symtable_update(Z_ARRVAL_P(return_value), Z_STR_P(col1), col2);
+                    }
+                    zval_ptr_dtor(col1);
+                    continue;
+                }
+
                 SC_MAKE_STD_ZVAL(return_tmp);
                 if (!(fetch_mode & SC_FETCH_COLUMN)) {
                     array_init(return_tmp);
                 }
+
                 for (size_t column = 0; column < block.GetColumnCount(); ++column)
                 {
                     string column_name = block.GetColumnName(column);
