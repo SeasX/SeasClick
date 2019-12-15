@@ -40,7 +40,7 @@ extern "C" {
 using namespace clickhouse;
 using namespace std;
 
-zend_class_entry *SeasClick_ce;
+zend_class_entry *SeasClick_ce, *SeasClickException_ce;
 map<int, Client*> clientMap;
 
 #ifdef COMPILE_DL_SEASCLICK
@@ -106,13 +106,18 @@ const zend_function_entry SeasClick_methods[] =
  */
 PHP_MINIT_FUNCTION(SeasClick)
 {
-    zend_class_entry SeasClick;
+    zend_class_entry SeasClick, SeasClickException;
     INIT_CLASS_ENTRY(SeasClick, SEASCLICK_RES_NAME, SeasClick_methods);
+    INIT_CLASS_ENTRY(SeasClickException, "SeasClickException", NULL);
+
 #if PHP_VERSION_ID >= 70000
     SeasClick_ce = zend_register_internal_class_ex(&SeasClick, NULL);
+    SeasClickException_ce = zend_register_internal_class_ex(&SeasClickException, zend_ce_exception);
 #else
     SeasClick_ce = zend_register_internal_class_ex(&SeasClick, NULL, NULL TSRMLS_CC);
+    SeasClickException_ce = zend_register_internal_class_ex(&SeasClickException, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 #endif
+
     zend_declare_property_stringl(SeasClick_ce, "host", strlen("host"), "127.0.0.1", sizeof("127.0.0.1") - 1, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(SeasClick_ce, "port", strlen("port"), 9000, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_stringl(SeasClick_ce, "database", strlen("database"), "default", sizeof("default") - 1, ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -249,7 +254,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     }
     catch (const std::exception& e)
     {
-        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
     }
 
     RETURN_TRUE;
@@ -396,7 +401,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
     }
     catch (const std::exception& e)
     {
-        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
     }
 }
 /* }}} */
@@ -498,7 +503,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
     }
     catch (const std::exception& e)
     {
-        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
@@ -560,7 +565,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
     }
     catch (const std::exception& e)
     {
-        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
@@ -580,7 +585,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
     }
     catch (const std::exception& e)
     {
-        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+        sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
     }
     RETURN_TRUE;
 }
