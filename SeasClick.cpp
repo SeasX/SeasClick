@@ -123,6 +123,7 @@ PHP_MINIT_FUNCTION(SeasClick)
     REGISTER_SC_CLASS_CONST_LONG("FETCH_ONE", (zend_long)SC_FETCH_ONE);
     REGISTER_SC_CLASS_CONST_LONG("FETCH_KEY_PAIR", (zend_long)SC_FETCH_KEY_PAIR);
     REGISTER_SC_CLASS_CONST_LONG("DATE_AS_STRINGS", (zend_long)SC_FETCH_DATE_AS_STRINGS);
+    REGISTER_SC_CLASS_CONST_LONG("FETCH_COLUMN", (zend_long)SC_FETCH_COLUMN);
 
     SeasClick_ce->ce_flags = ZEND_ACC_IMPLICIT_PUBLIC;
     return SUCCESS;
@@ -291,7 +292,6 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
 {
     char *sql = NULL;
     size_t l_sql = 0;
-    zval *single_ret = NULL;
     zval* params = NULL;
     zend_long fetch_mode = 0;
 
@@ -355,11 +355,18 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
             for (size_t row = 0; row < block.GetRowCount(); ++row)
             {
                 SC_MAKE_STD_ZVAL(return_tmp);
-                array_init(return_tmp);
+                if (!(fetch_mode & SC_FETCH_COLUMN)) {
+                    array_init(return_tmp);
+                }
                 for (size_t column = 0; column < block.GetColumnCount(); ++column)
                 {
                     string column_name = block.GetColumnName(column);
-                    convertToZval(return_tmp, block[column], row, column_name, 0, fetch_mode);
+                    if (fetch_mode & SC_FETCH_COLUMN) {
+                        convertToZval(return_tmp, block[0], row, "", 0, fetch_mode|SC_FETCH_ONE);
+                        break;
+                    } else {
+                        convertToZval(return_tmp, block[column], row, column_name, 0, fetch_mode);
+                    }
                 }
                 add_next_index_zval(return_value, return_tmp);
             }

@@ -1,5 +1,5 @@
 --TEST--
-SeasClick Single Column Fetch
+SeasClick Single Value Fetch
 --SKIPIF--
 <?php if (!extension_loaded("SeasClick")) print "skip"; ?>
 --FILE--
