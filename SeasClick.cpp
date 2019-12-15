@@ -64,9 +64,10 @@ ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
 ZEND_ARG_INFO(0, connectParames)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_select, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_select, 0, 0, 3)
 ZEND_ARG_INFO(0, sql)
 ZEND_ARG_INFO(0, params)
+ZEND_ARG_INFO(0, fetch_mode)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insert, 0, 0, 3)
@@ -98,6 +99,9 @@ const zend_function_entry SeasClick_methods[] =
     PHP_FE_END
 };
 
+#define REGISTER_SC_CLASS_CONST_LONG(const_name, value) \
+	zend_declare_class_constant_long(SeasClick_ce, const_name, sizeof(const_name)-1, (zend_long)value);
+
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(SeasClick)
@@ -116,31 +120,11 @@ PHP_MINIT_FUNCTION(SeasClick)
     zend_declare_property_null(SeasClick_ce, "passwd", strlen("passwd"), ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_bool(SeasClick_ce, "compression", strlen("compression"), false, ZEND_ACC_PROTECTED TSRMLS_CC);
 
+    REGISTER_SC_CLASS_CONST_LONG("FETCH_ONE", (zend_long)SC_FETCH_ONE);
+    REGISTER_SC_CLASS_CONST_LONG("FETCH_KEY_PAIR", (zend_long)SC_FETCH_KEY_PAIR);
+    REGISTER_SC_CLASS_CONST_LONG("DATE_AS_STRINGS", (zend_long)SC_FETCH_DATE_AS_STRINGS);
+
     SeasClick_ce->ce_flags = ZEND_ACC_IMPLICIT_PUBLIC;
-    return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_MSHUTDOWN_FUNCTION
- */
-PHP_MSHUTDOWN_FUNCTION(SeasClick)
-{
-    return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(SeasClick)
-{
-    return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(SeasClick)
-{
     return SUCCESS;
 }
 /* }}} */
@@ -167,9 +151,9 @@ zend_module_entry SeasClick_module_entry =
     SEASCLICK_RES_NAME,
     SeasClick_functions,
     PHP_MINIT(SeasClick),
-    PHP_MSHUTDOWN(SeasClick),
-    PHP_RINIT(SeasClick),
-    PHP_RSHUTDOWN(SeasClick),
+    NULL,
+    NULL,
+    NULL,
     PHP_MINFO(SeasClick),
     PHP_SEASCLICK_VERSION,
     STANDARD_MODULE_PROPERTIES
@@ -301,26 +285,29 @@ void getInsertSql(string *sql, char *table_name, zval *columns)
     *sql = "INSERT INTO " + (string)table_name + " ( " + fields_section.str() + " ) VALUES";
 }
 
-/* {{{ proto array select(string sql, array params)
+/* {{{ proto array select(string sql, array params, int mode)
  */
 PHP_METHOD(SEASCLICK_RES_NAME, select)
 {
     char *sql = NULL;
     size_t l_sql = 0;
+    zval *single_ret = NULL;
     zval* params = NULL;
+    zend_long fetch_mode = 0;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &sql, &l_sql, &params) == FAILURE)
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zl", &sql, &l_sql, &params, &fetch_mode) == FAILURE)
     {
         return;
     }
 #else
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
-    ZEND_PARSE_PARAMETERS_START(1, 2)
+    ZEND_PARSE_PARAMETERS_START(1, 3)
     Z_PARAM_STRING(sql, l_sql)
     Z_PARAM_OPTIONAL
     Z_PARAM_ARRAY(params)
+    Z_PARAM_LONG(fetch_mode)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
@@ -352,10 +339,18 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
         int key = Z_OBJ_HANDLE(*getThis());
         Client *client = clientMap.at(key);
 
-        array_init(return_value);
+        if (!(fetch_mode & SC_FETCH_ONE)) {
+            array_init(return_value);
+        }
 
-        client->Select(sql_s, [return_value](const Block& block)
-        {
+        client->Select(sql_s, [return_value, fetch_mode](const Block &block) {
+            if (fetch_mode & SC_FETCH_ONE) {
+                if (block.GetRowCount() > 0 && block.GetColumnCount() > 0) {
+                    convertToZval(return_value, block[0], 0, "", 0, fetch_mode);
+                }
+                return;
+            }
+
             zval *return_tmp;
             for (size_t row = 0; row < block.GetRowCount(); ++row)
             {
@@ -364,13 +359,11 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
                 for (size_t column = 0; column < block.GetColumnCount(); ++column)
                 {
                     string column_name = block.GetColumnName(column);
-                    convertToZval(return_tmp, block[column], row, column_name, 0);
+                    convertToZval(return_tmp, block[column], row, column_name, 0, fetch_mode);
                 }
                 add_next_index_zval(return_value, return_tmp);
             }
-        }
-                      );
-
+        });
     }
     catch (const std::exception& e)
     {

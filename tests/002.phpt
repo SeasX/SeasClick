@@ -66,7 +66,7 @@ array(2) {
     }
     ["arraynull_c"]=>
     array(1) {
-      ["array"]=>
+      [0]=>
       string(6) "string"
     }
   }

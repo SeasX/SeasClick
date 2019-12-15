@@ -615,7 +615,28 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
     throw std::runtime_error("insertColumn runtime error.");
 }
 
-void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array)
+#define SC_SINGLE_LONG()  \
+    if (fetch_mode & SC_FETCH_ONE) { \
+        ZVAL_LONG(arr, (zend_ulong)col); \
+    } else { \
+        sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col); \
+    }
+
+#define SC_SINGLE_DOUBLE(val)  \
+    if (fetch_mode & SC_FETCH_ONE) { \
+        ZVAL_DOUBLE(arr, val); \
+    } else { \
+        sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), val); \
+    }
+
+#define SC_SINGLE_STRING(val, len)  \
+    if (fetch_mode & SC_FETCH_ONE) { \
+        ZVAL_STRINGL(arr, val, len); \
+    } else { \
+        sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), val, len, 1); \
+    }
+
+void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array, zend_long fetch_mode)
 {
     switch (columnRef->Type()->GetCode())
     {
@@ -628,7 +649,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -641,7 +662,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -654,7 +675,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -667,7 +688,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -681,7 +702,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -694,7 +715,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -707,7 +728,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -720,7 +741,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            SC_SINGLE_LONG();
         }
         break;
     }
@@ -738,7 +759,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
+            SC_SINGLE_STRING((char*)(first.str() + second.str()).c_str(), (first.str() + second.str()).length());
         }
         break;
     }
@@ -756,7 +777,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), d);
+            SC_SINGLE_DOUBLE(d);
         }
         break;
     }
@@ -769,7 +790,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), (double)col);
+            SC_SINGLE_DOUBLE((double)col);
         }
         break;
     }
@@ -783,7 +804,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), col.length(), 1);
+            SC_SINGLE_STRING((char*)col.c_str(), col.length());
         }
         break;
     }
@@ -796,7 +817,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)col.c_str(), strlen((char*)col.c_str()), 1);
+            SC_SINGLE_STRING((char*)col.c_str(), strlen((char*)col.c_str()));
         }
         break;
     }
@@ -806,11 +827,31 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto col = columnRef->As<ColumnDateTime>();
         if (is_array)
         {
-            add_next_index_long(arr, (long)col->As<ColumnDateTime>()->At(row));
+            if (fetch_mode & SC_FETCH_DATE_AS_STRINGS) {
+                char buffer[32];
+                size_t l;
+                std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
+                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                sc_add_next_index_stringl(arr, buffer, l, 1);
+            } else {
+                add_next_index_long(arr, (long)col->As<ColumnDateTime>()->At(row));
+            }
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDateTime>()->At(row));
+            if (fetch_mode & SC_FETCH_DATE_AS_STRINGS) {
+                char buffer[32];
+                size_t l;
+                std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
+                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                SC_SINGLE_STRING(buffer, l);
+            } else {
+                if (fetch_mode & SC_FETCH_ONE) {
+                    ZVAL_LONG(arr, (long)col->As<ColumnDateTime>()->At(row));
+                } else {
+                    sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDateTime>()->At(row));
+                }
+            }
         }
         break;
     }
@@ -819,11 +860,31 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto col = columnRef->As<ColumnDate>();
         if (is_array)
         {
-            add_next_index_long(arr, (long)col->As<ColumnDate>()->At(row));
+            if (fetch_mode & SC_FETCH_DATE_AS_STRINGS) {
+                char buffer[16];
+                size_t l;
+                std::time_t t = (long)col->As<ColumnDate>()->At(row);
+                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                sc_add_next_index_stringl(arr, buffer, l, 1);
+            } else {
+                add_next_index_long(arr, (long)col->As<ColumnDate>()->At(row));
+            }
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDate>()->At(row));
+            if (fetch_mode & SC_FETCH_DATE_AS_STRINGS) {
+                char buffer[16];
+                size_t l;
+                std::time_t t = (long)col->As<ColumnDate>()->At(row);
+                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                SC_SINGLE_STRING(buffer, l);
+            } else {
+                if (fetch_mode & SC_FETCH_ONE) {
+                    ZVAL_LONG(arr, (long)col->As<ColumnDate>()->At(row));
+                } else {
+                    sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDate>()->At(row));
+                }
+            }
         }
         break;
     }
@@ -832,20 +893,28 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
     {
         auto array = columnRef->As<ColumnArray>();
         auto col = array->GetAsColumn(row);
-        zval *return_tmp;
-        SC_MAKE_STD_ZVAL(return_tmp);
-        array_init(return_tmp);
-        for (size_t i = 0; i < col->Size(); ++i)
-        {
-            convertToZval(return_tmp, col, i, "array", 1);
-        }
-        if (is_array)
-        {
-            add_next_index_zval(arr, return_tmp);
-        }
-        else
-        {
-            sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+        if (fetch_mode & SC_FETCH_ONE) {
+            array_init(arr);
+            for (size_t i = 0; i < col->Size(); ++i)
+            {
+                convertToZval(arr, col, i, "array", 1, 0);
+            }
+        } else {
+            zval *return_tmp;
+            SC_MAKE_STD_ZVAL(return_tmp);
+            array_init(return_tmp);
+            for (size_t i = 0; i < col->Size(); ++i)
+            {
+                convertToZval(return_tmp, col, i, "array", 1, 0);
+            }
+            if (is_array)
+            {
+                add_next_index_zval(arr, return_tmp);
+            }
+            else
+            {
+                sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+            }
         }
         break;
     }
@@ -859,7 +928,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            SC_SINGLE_STRING((char*)array->NameAt(row).c_str(), array->NameAt(row).length());
         }
         break;
     }
@@ -872,7 +941,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char*)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            SC_SINGLE_STRING((char*)array->NameAt(row).c_str(), array->NameAt(row).length());
         }
         break;
     }
@@ -888,12 +957,16 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
             }
             else
             {
-                sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                if (fetch_mode & SC_FETCH_ONE) {
+                    ZVAL_NULL(arr);
+                } else {
+                    sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                }
             }
         }
         else
         {
-            convertToZval(arr, nullable->Nested(), row, column_name, 0);
+            convertToZval(arr, nullable->Nested(), row, column_name, is_array, fetch_mode);
         }
         break;
     }
@@ -901,20 +974,28 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
     case Type::Code::Tuple:
     {
         auto tuple = columnRef->As<ColumnTuple>();
-        zval *return_tmp;
-        SC_MAKE_STD_ZVAL(return_tmp);
-        array_init(return_tmp);
-        for (size_t i = 0; i < tuple->tupleSize(); ++i)
-        {
-            convertToZval(return_tmp, (*tuple)[i], row, "tuple", 1);
-        }
-        if (is_array)
-        {
-            add_next_index_zval(arr, return_tmp);
-        }
-        else
-        {
-            sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+        if (fetch_mode & SC_FETCH_ONE) {
+            array_init(arr);
+            for (size_t i = 0; i < tuple->tupleSize(); ++i)
+            {
+                convertToZval(arr, (*tuple)[i], row, "tuple", 1, 0);
+            }
+        } else {
+            zval *return_tmp;
+            SC_MAKE_STD_ZVAL(return_tmp);
+            array_init(return_tmp);
+            for (size_t i = 0; i < tuple->tupleSize(); ++i)
+            {
+                convertToZval(return_tmp, (*tuple)[i], row, "tuple", 1, 0);
+            }
+            if (is_array)
+            {
+                add_next_index_zval(arr, return_tmp);
+            }
+            else
+            {
+                sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+            }
         }
         break;
     }
