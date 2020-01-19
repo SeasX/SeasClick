@@ -92,6 +92,8 @@ if test "$PHP_SEASCLICK" != "no"; then
 
   THIS_DIR=`dirname $0`
   PHP_ADD_INCLUDE($THIS_DIR/lib/clickhouse-cpp/contrib)
+  PHP_ADD_INCLUDE([$phpincludedir/ext/swoole])
+  PHP_ADD_INCLUDE([$phpincludedir/ext/swoole/include])
   
   PHP_NEW_EXTENSION(SeasClick, $SeasClick_source_file, $ext_shared,,-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp)

@@ -5,6 +5,10 @@ C++ client for [Yandex ClickHouse](https://clickhouse.yandex/)
 
 ## This repositorie change
 * [Add InsertQuery and InsertData methods](https://github.com/aiwhj/clickhouse-cpp/commit/bab28bcb5a509d80b8e2e0c7e89512446283dde5)
+* [add tupleSize Function](https://github.com/aiwhj/clickhouse-cpp/commit/7c75a6a711432469a0e371b83ebc0586f4e5ecad)
+* [add GetTupleType Function](https://github.com/aiwhj/clickhouse-cpp/commit/7f24a86f65b1a3316a49babab9a8589670a7d763)
+* [support multidimensional arrays](https://github.com/aiwhj/clickhouse-cpp/commit/fff57d94b83240faef5ba61ccf3e1ec129230a05)
+
 
 ## Supported data types
 

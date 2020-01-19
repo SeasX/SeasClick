@@ -51,6 +51,15 @@ typedef unsigned long ulong_t;
 
 #define SEASCLICK_RES_NAME "SeasClick"
 
+enum query_type
+{
+    Connect,
+    InsertQuery,
+    InsertData,
+    ExecuteQuery,
+    SelectQuery
+};
+
 #endif	/* PHP_SEASCLICK_H */
 
 /*

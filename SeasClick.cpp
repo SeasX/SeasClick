@@ -19,6 +19,9 @@
 #include "config.h"
 #endif
 
+#include "ext/swoole/config.h"
+#include "ext/swoole/php_swoole_cxx.h"
+
 extern "C" {
 #include "php.h"
 #include "php_ini.h"
@@ -39,9 +42,20 @@ extern "C" {
 
 using namespace clickhouse;
 using namespace std;
+using namespace swoole;
+
+static zend_object_handlers swoole_seasclick_coro_handlers;
+
+typedef struct _php_seasclick_object
+{
+    swSocket *socket;
+    php_coro_context context;
+    Client *client;
+    enum query_type request_type;
+    zend_object std;
+} sc_object_t;
 
 zend_class_entry *SeasClick_ce;
-map<int, Client*> clientMap;
 
 #ifdef COMPILE_DL_SEASCLICK
 extern "C" {
@@ -59,6 +73,15 @@ static PHP_METHOD(SEASCLICK_RES_NAME, __destruct);
 static PHP_METHOD(SEASCLICK_RES_NAME, select);
 static PHP_METHOD(SEASCLICK_RES_NAME, insert);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
+
+static int swoole_seasclick_coro_onRead(swReactor *reactor, swEvent *event);
+static int swoole_seasclick_coro_onWrite(swReactor *reactor, swEvent *event);
+static int swoole_seasclick_coro_onError(swReactor *reactor, swEvent *event);
+
+
+static sw_inline sc_object_t* php_seasclick_coro_fetch_object(zval *zobject);
+static zend_object *php_seasclick_coro_create_object(zend_class_entry *ce);
+
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
 ZEND_ARG_INFO(0, connectParames)
@@ -109,6 +132,13 @@ PHP_MINIT_FUNCTION(SeasClick)
 #else
     SeasClick_ce = zend_register_internal_class_ex(&SeasClick, NULL, NULL TSRMLS_CC);
 #endif
+    memcpy(&swoole_seasclick_coro_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    swoole_seasclick_coro_handlers.offset = XtOffsetOf(sc_object_t, std);
+
+	SeasClick_ce->create_object = php_seasclick_coro_create_object;
+	SeasClick_ce->serialize = zend_class_serialize_deny;
+	SeasClick_ce->unserialize = zend_class_unserialize_deny;
+
     zend_declare_property_stringl(SeasClick_ce, "host", strlen("host"), "127.0.0.1", sizeof("127.0.0.1") - 1, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_long(SeasClick_ce, "port", strlen("port"), 9000, ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_stringl(SeasClick_ce, "database", strlen("database"), "default", sizeof("default") - 1, ZEND_ACC_PROTECTED TSRMLS_CC);
@@ -176,6 +206,21 @@ zend_module_entry SeasClick_module_entry =
 };
 /* }}} */
 
+static sw_inline sc_object_t* php_seasclick_coro_fetch_object(zval *zobject)
+{
+    return (sc_object_t *) ((char *) Z_OBJ_P(zobject) - swoole_seasclick_coro_handlers.offset);
+}
+
+static zend_object *php_seasclick_coro_create_object(zend_class_entry *ce)
+{
+    sc_object_t *seasclick_coro = (sc_object_t *) ecalloc(1, sizeof(sc_object_t) + zend_object_properties_size(ce));
+    zend_object_std_init(&seasclick_coro->std, ce);
+    object_properties_init(&seasclick_coro->std, ce);
+    seasclick_coro->std.handlers = &swoole_seasclick_coro_handlers;
+
+    return &seasclick_coro->std;
+}
+
 /* {{{ proto object __construct(array connectParames)
  */
 PHP_METHOD(SEASCLICK_RES_NAME, __construct)
@@ -227,6 +272,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     ClientOptions Options = ClientOptions()
                             .SetHost(Z_STRVAL_P(host))
                             .SetPort(Z_LVAL_P(port))
+                            .SetNonBlocking(true)
                             .SetPingBeforeQuery(false);
     if (Z_TYPE_P(compression) == IS_TRUE)
     {
@@ -259,15 +305,40 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         Client *client = new Client(Options);
         int key = Z_OBJ_HANDLE(*this_obj);
 
-        clientMap.insert(std::pair<int, Client*>(key, client));
+        php_swoole_check_reactor();
 
+        if (!swReactor_isset_handler(sw_reactor(), PHP_SWOOLE_FD_POSTGRESQL))
+        {
+            swReactor_set_handler(sw_reactor(), PHP_SWOOLE_FD_POSTGRESQL | SW_EVENT_READ, swoole_seasclick_coro_onRead);
+            swReactor_set_handler(sw_reactor(), PHP_SWOOLE_FD_POSTGRESQL | SW_EVENT_WRITE, swoole_seasclick_coro_onWrite);
+            swReactor_set_handler(sw_reactor(), PHP_SWOOLE_FD_POSTGRESQL | SW_EVENT_ERROR, swoole_seasclick_coro_onError);
+        }
+
+        sc_object_t *seasclick_coro = php_seasclick_coro_fetch_object(ZEND_THIS);
+        seasclick_coro->client = client;
+        seasclick_coro->request_type = query_type::Connect;
+
+        swSocket *socket = swSocket_new(client->GetFd(), (enum swFd_type) PHP_SWOOLE_FD_POSTGRESQL);
+
+        if (sw_reactor()->add(sw_reactor(), socket, SW_EVENT_WRITE) < 0)
+        {
+            php_swoole_fatal_error(E_WARNING, "swoole_event_add failed");
+            RETURN_FALSE;
+        }
+
+        socket->object = seasclick_coro;
+
+        seasclick_coro->socket = socket;
+
+        php_coro_context *context = &seasclick_coro->context;
+        context->coro_params = *ZEND_THIS;
+
+        PHPCoroutine::yield_m(return_value, context);
     }
     catch (const std::exception& e)
     {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
-
-    RETURN_TRUE;
 }
 /* }}} */
 
@@ -349,28 +420,19 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
             SC_HASHTABLE_FOREACH_END();
         }
 
-        int key = Z_OBJ_HANDLE(*getThis());
-        Client *client = clientMap.at(key);
+        sc_object_t *seasclick_coro = php_seasclick_coro_fetch_object(ZEND_THIS);
+        Client *client = seasclick_coro->client;
 
-        array_init(return_value);
+        client->Select(sql_s);
 
-        client->Select(sql_s, [return_value](const Block& block)
-        {
-            zval *return_tmp;
-            for (size_t row = 0; row < block.GetRowCount(); ++row)
-            {
-                SC_MAKE_STD_ZVAL(return_tmp);
-                array_init(return_tmp);
-                for (size_t column = 0; column < block.GetColumnCount(); ++column)
-                {
-                    string column_name = block.GetColumnName(column);
-                    convertToZval(return_tmp, block[column], row, column_name, 0);
-                }
-                add_next_index_zval(return_value, return_tmp);
-            }
-        }
-                      );
+        seasclick_coro->request_type = query_type::SelectQuery;
 
+        php_coro_context *context = &seasclick_coro->context;
+        context->coro_params = *ZEND_THIS;
+
+        swoole_event_add(seasclick_coro->socket, SW_EVENT_READ);
+        PHPCoroutine::yield_m(return_value, context);
+        zval_ptr_dtor(return_value);
     }
     catch (const std::exception& e)
     {
@@ -449,30 +511,25 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         }
 
         getInsertSql(&sql, table, columns);
-        Block blockQuery;
 
-        int key = Z_OBJ_HANDLE(*getThis());
-        Client *client = clientMap.at(key);
+        sc_object_t *seasclick_coro = php_seasclick_coro_fetch_object(ZEND_THIS);
+        Client *client = seasclick_coro->client;
 
-        client->InsertQuery(sql, [&blockQuery](const Block& block)
-        {
-            blockQuery = block;
-        }
-                           );
+        client->InsertQuery(sql);
 
-        Block blockInsert;
-        size_t index = 0;
+        seasclick_coro->request_type = query_type::InsertQuery;
 
-        SC_HASHTABLE_FOREACH_START2(Z_ARRVAL_P(return_should), str_key, str_keylen, keytype, pzval)
-        {
-            zvalToBlock(blockInsert, blockQuery, index, pzval);
-            index++;
-        }
-        SC_HASHTABLE_FOREACH_END();
+        php_coro_context *context = &seasclick_coro->context;
+        context->coro_params = *return_should;
 
-        client->InsertData(blockInsert);
+        swoole_event_add(seasclick_coro->socket, SW_EVENT_READ);
+        PHPCoroutine::yield_m(return_value, context);
+
         sc_zval_ptr_dtor(&return_should);
 
+        seasclick_coro->request_type = query_type::InsertData;
+        swoole_event_add(seasclick_coro->socket, SW_EVENT_READ);
+        PHPCoroutine::yield_m(return_value, context);
     }
     catch (const std::exception& e)
     {
@@ -531,16 +588,22 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
             SC_HASHTABLE_FOREACH_END();
         }
 
-        int key = Z_OBJ_HANDLE(*getThis());
-        Client *client = clientMap.at(key);
+        sc_object_t *seasclick_coro = php_seasclick_coro_fetch_object(ZEND_THIS);
+        Client *client = seasclick_coro->client;
         client->Execute(sql_s);
 
+        seasclick_coro->request_type = query_type::ExecuteQuery;
+
+        php_coro_context *context = &seasclick_coro->context;
+        context->coro_params = *ZEND_THIS;
+
+        swoole_event_add(seasclick_coro->socket, SW_EVENT_READ);
+        PHPCoroutine::yield_m(return_value, context);
     }
     catch (const std::exception& e)
     {
         sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
     }
-    RETURN_TRUE;
 }
 /* }}} */
 
@@ -550,11 +613,9 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
 {
     try
     {
-        int key = Z_OBJ_HANDLE(*getThis());
-        Client *client = clientMap.at(key);
+        sc_object_t *seasclick_coro = php_seasclick_coro_fetch_object(ZEND_THIS);
+        Client *client = seasclick_coro->client;
         delete client;
-        clientMap.erase(key);
-
     }
     catch (const std::exception& e)
     {
@@ -563,6 +624,116 @@ PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
     RETURN_TRUE;
 }
 /* }}} */
+
+static int swoole_seasclick_coro_onRead(swReactor *reactor, swEvent *event)
+{
+    sc_object_t *seasclick_coro = (sc_object_t *)(event->socket->object);
+    swoole_event_del(event->socket);
+
+    Client *client = seasclick_coro->client;
+    zval *_return_value = NULL;
+
+    if (seasclick_coro->request_type == query_type::SelectQuery) {
+        zval return_value;
+        _return_value = &return_value;
+        array_init(_return_value);
+        client->ReadData([_return_value](const Block& block)
+        {
+            zval *return_tmp;
+            for (size_t row = 0; row < block.GetRowCount(); ++row)
+            {
+                SC_MAKE_STD_ZVAL(return_tmp);
+                array_init(return_tmp);
+                for (size_t column = 0; column < block.GetColumnCount(); ++column)
+                {
+                    string column_name = block.GetColumnName(column);
+                    convertToZval(return_tmp, block[column], row, column_name, 0);
+                }
+                add_next_index_zval(_return_value, return_tmp);
+            }
+        });
+    } else if (seasclick_coro->request_type == query_type::ExecuteQuery) {
+        client->ReadData();
+    } else if (seasclick_coro->request_type == query_type::InsertQuery) {
+
+        Block blockQuery;
+        client->ReadData([&blockQuery](const Block& block)
+        {
+            blockQuery = block;
+        });
+
+        Block blockInsert;
+        size_t index = 0;
+        php_coro_context *context = &seasclick_coro->context;
+        zval *return_should = &context->coro_params;
+
+        zval *pzval;
+        char *str_key;
+        uint32_t str_keylen;
+        int keytype;
+        SC_HASHTABLE_FOREACH_START2(Z_ARRVAL_P(return_should), str_key, str_keylen, keytype, pzval)
+        {
+            zvalToBlock(blockInsert, blockQuery, index, pzval);
+            index++;
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        client->InsertData(blockInsert);
+    } else if (seasclick_coro->request_type == query_type::InsertData) {
+        client->ReadData();
+    }
+
+    zval *retval = NULL;
+    int ret = PHPCoroutine::resume_m(&seasclick_coro->context, _return_value, retval);
+    if (ret == SW_CORO_ERR_END && retval)
+    {
+        zval_ptr_dtor(retval);
+    }
+    return SW_OK;
+}
+
+static int swoole_seasclick_coro_onWrite(swReactor *reactor, swEvent *event)
+{
+    sc_object_t *seasclick_coro = (sc_object_t *)(event->socket->object);
+    swoole_event_del(event->socket);
+
+    zval _result;
+    zval *result = &_result;
+    zval *retval = NULL;
+
+    ZVAL_FALSE(result);
+    
+    int ret = PHPCoroutine::resume_m(&seasclick_coro->context, result, retval);
+    zval_ptr_dtor(result);
+
+    if (ret == SW_CORO_ERR_END && retval)
+    {
+        zval_ptr_dtor(retval);
+    }
+    return SW_OK;
+}
+
+static int swoole_seasclick_coro_onError(swReactor *reactor, swEvent *event)
+{
+    sc_object_t *seasclick_coro = (sc_object_t *)(event->socket->object);
+    swoole_event_del(event->socket);
+
+    zval _result;
+    zval *result = &_result;
+    zval *retval = NULL;
+
+    ZVAL_FALSE(result);
+
+    int ret = PHPCoroutine::resume_m(&seasclick_coro->context, result, retval);
+    zval_ptr_dtor(result);
+
+    if (ret == SW_CORO_ERR_END && retval)
+    {
+        zval_ptr_dtor(retval);
+    }
+
+    return SW_OK;
+}
 
 /*
  * Local variables:

@@ -3,6 +3,7 @@
  * @author ahhhh.wang@gmail.com
  * Date: 19/02/6 8:23
  */
+use Swoole\Event;
 
 $br = (php_sapi_name() == "cli")? "":"<br>";
 
@@ -16,7 +17,11 @@ $config = [
     "compression" => true
 ];
 
-clientTest($config);
+go(function () use ($config) {
+    clientTest($config);
+});
+
+Event::wait();
 
 function clientTest($config)
 {

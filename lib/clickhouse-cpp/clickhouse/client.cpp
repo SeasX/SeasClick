@@ -86,6 +86,12 @@ public:
 
     void ResetConnection();
 
+    SOCKET GetFd();
+
+    void ReadData(Query query);
+
+    void ReadData();
+
 private:
     bool Handshake();
 
@@ -146,6 +152,7 @@ private:
     int compression_ = CompressionState::Disable;
 
     SocketHolder socket_;
+    SOCKET fd_;
 
     SocketInput socket_input_;
     BufferedInput buffered_input_;
@@ -156,6 +163,8 @@ private:
     CodedOutputStream output_;
 
     ServerInfo server_info_;
+
+    ReadType read_type_;
 };
 
 
@@ -163,12 +172,14 @@ Client::Impl::Impl(const ClientOptions& opts)
     : options_(opts)
     , events_(nullptr)
     , socket_(-1)
+    , fd_(-1)
     , socket_input_(socket_)
     , buffered_input_(&socket_input_)
     , input_(&buffered_input_)
     , socket_output_(socket_)
     , buffered_output_(&socket_output_)
     , output_(&buffered_output_)
+    , read_type_(ReadType::Normal)
 {
     for (int i = 0; ; ) {
         try {
@@ -189,10 +200,18 @@ Client::Impl::Impl(const ClientOptions& opts)
 }
 
 Client::Impl::~Impl() {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+    
     Disconnect();
 }
 
 void Client::Impl::ExecuteQuery(Query query) {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+
     EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
 
     if (options_.ping_before_query) {
@@ -201,12 +220,21 @@ void Client::Impl::ExecuteQuery(Query query) {
 
     SendQuery(query.GetText());
 
+    if (options_.non_blocking) {
+        read_type_ = ReadType::ExecuteQuery;
+        return;
+    }
+
     while (ReceivePacket()) {
         ;
     }
 }
 
 void Client::Impl::Insert(const std::string& table_name, const Block& block) {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+
     if (options_.ping_before_query) {
         RetryGuard([this]() { Ping(); });
     }
@@ -259,7 +287,73 @@ void Client::Impl::Insert(const std::string& table_name, const Block& block) {
     }
 }
 
+void Client::Impl::ReadData(Query query) {
+    EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
+
+    if (read_type_ == ReadType::InsertQuery) {
+        uint64_t server_packet;
+        // Receive data packet.
+        while (true) {
+            bool ret = ReceivePacket(&server_packet);
+
+            if (!ret) {
+                throw std::runtime_error("fail to receive data packet");
+            }
+            if (server_packet == ServerCodes::Data) {
+                break;
+            }
+            if (server_packet == ServerCodes::Progress) {
+                continue;
+            }
+        }
+    } else if (read_type_ == ReadType::InsertData) {
+        while (ReceivePacket()) {
+            ;
+        }
+    } else if (read_type_ == ReadType::ExecuteQuery) {
+        while (ReceivePacket()) {
+            ;
+        }
+    }
+
+    read_type_ = ReadType::Normal;
+}
+
+void Client::Impl::ReadData() {
+    if (read_type_ == ReadType::InsertQuery) {
+        uint64_t server_packet;
+        // Receive data packet.
+        while (true) {
+            bool ret = ReceivePacket(&server_packet);
+
+            if (!ret) {
+                throw std::runtime_error("fail to receive data packet");
+            }
+            if (server_packet == ServerCodes::Data) {
+                break;
+            }
+            if (server_packet == ServerCodes::Progress) {
+                continue;
+            }
+        }
+    } else if (read_type_ == ReadType::InsertData) {
+        while (ReceivePacket()) {
+            ;
+        }
+    } else if (read_type_ == ReadType::ExecuteQuery) {
+        while (ReceivePacket()) {
+            ;
+        }
+    }
+
+    read_type_ = ReadType::Normal;
+}
+
 void Client::Impl::InsertQuery(Query query) {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+
     EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
 
     if (options_.ping_before_query) {
@@ -267,7 +361,12 @@ void Client::Impl::InsertQuery(Query query) {
     }
 
     SendQuery(query.GetText());
-    
+
+    if (options_.non_blocking) {
+        read_type_ = ReadType::InsertQuery;
+        return;
+    }
+
     uint64_t server_packet;
     // Receive data packet.
     while (true) {
@@ -286,12 +385,19 @@ void Client::Impl::InsertQuery(Query query) {
 }
 
 void Client::Impl::InsertData(const Block& block) {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+
     // Send data.
     SendData(block);
     // Send empty block as marker of
     // end of data.
     SendData(Block());
-
+    if (options_.non_blocking) {
+        read_type_ = ReadType::InsertData;
+        return;
+    }
     // Wait for EOS.
     while (ReceivePacket()) {
         ;
@@ -299,6 +405,10 @@ void Client::Impl::InsertData(const Block& block) {
 }
 
 void Client::Impl::Ping() {
+    if (read_type_ != ReadType::Normal) {
+        ReadData();
+    }
+
     WireFormat::WriteUInt64(&output_, ClientCodes::Ping);
     output_.Flush();
 
@@ -311,7 +421,8 @@ void Client::Impl::Ping() {
 }
 
 void Client::Impl::ResetConnection() {
-    SocketHolder s(SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port))));
+    fd_ = SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port)));
+    SocketHolder s(fd_);
 
     if (s.Closed()) {
         throw std::system_error(errno, std::system_category());
@@ -326,6 +437,12 @@ void Client::Impl::ResetConnection() {
     if (!Handshake()) {
         throw std::runtime_error("fail to connect to " + options_.host);
     }
+
+    read_type_ = ReadType::Normal;
+}
+
+int Client::Impl::GetFd() {
+    return fd_;
 }
 
 bool Client::Impl::Handshake() {
@@ -556,6 +673,8 @@ bool Client::Impl::ReceiveException(bool rethrow) {
             break;
         }
     } while (true);
+    
+    read_type_ = ReadType::Normal;
 
     if (events_) {
         events_->OnServerException(*e);
@@ -811,6 +930,31 @@ void Client::Ping() {
 
 void Client::ResetConnection() {
     impl_->ResetConnection();
+}
+
+SOCKET Client::GetFd() {
+    return impl_->GetFd();
+}
+
+// Non Blocking
+void Client::InsertQuery(const std::string& query) {
+    impl_->InsertQuery(Query(query));
+}
+
+void Client::Select(const std::string& query) {
+    Execute(Query(query));
+}
+
+void Client::SelectCancelable(const std::string& query) {
+    Execute(Query(query));
+}
+
+void Client::ReadData(SelectCallback cb) {
+    impl_->ReadData(Query().OnData(cb));
+}
+
+void Client::ReadData() {
+    impl_->ReadData();
 }
 
 }

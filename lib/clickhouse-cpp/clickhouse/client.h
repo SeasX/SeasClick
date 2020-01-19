@@ -25,6 +25,13 @@ enum class CompressionMethod {
     LZ4     =  1,
 };
 
+enum class ReadType {
+    Normal    = -1,
+    InsertQuery    =  1000,
+    InsertData     =  1001,
+    ExecuteQuery   =  1002
+};
+
 struct ClientOptions {
 #define DECLARE_FIELD(name, type, setter, default) \
     type name = default; \
@@ -52,6 +59,10 @@ struct ClientOptions {
 
     /// Ping server every time before execute any query.
     DECLARE_FIELD(ping_before_query, bool, SetPingBeforeQuery, false);
+
+    // non_blocking
+    DECLARE_FIELD(non_blocking, bool, SetNonBlocking, false);
+
     /// Count of retry to send request to server.
     DECLARE_FIELD(send_retries, int, SetSendRetries, 1);
     /// Amount of time to wait before next retry.
@@ -99,6 +110,18 @@ public:
 
     /// Reset connection with initial params.
     void ResetConnection();
+
+    int GetFd();
+
+    void Select(const std::string& query);
+
+    void SelectCancelable(const std::string& query);
+
+    void InsertQuery(const std::string& query);
+
+    void ReadData(SelectCallback cb);
+
+    void ReadData();
 
 private:
     ClientOptions options_;
