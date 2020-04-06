@@ -371,7 +371,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, select)
                     convertToZval(col2, block[1], row, "", 0, fetch_mode|SC_FETCH_ONE);
 
                     if (Z_TYPE_P(col1) == IS_LONG) {
-                         zend_hash_index_update(Z_ARRVAL_P(return_value), Z_LVAL_P(col1), col2);
+                         sc_zend_hash_index_update(Z_ARRVAL_P(return_value), Z_LVAL_P(col1), col2);
                     } else {
                         convert_to_string(col1);
                         zend_symtable_update(Z_ARRVAL_P(return_value), Z_STR_P(col1), col2);

@@ -636,7 +636,7 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), val, len, 1); \
     }
 
-void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array, zend_long fetch_mode)
+void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array, long fetch_mode)
 {
     switch (columnRef->Type()->GetCode())
     {
