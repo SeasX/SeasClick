@@ -116,7 +116,7 @@ PHP_MINIT_FUNCTION(SeasClick)
     zend_declare_property_null(SeasClick_ce, "passwd", strlen("passwd"), ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_bool(SeasClick_ce, "compression", strlen("compression"), false, ZEND_ACC_PROTECTED TSRMLS_CC);
 
-    SeasClick_ce->ce_flags = ZEND_ACC_IMPLICIT_PUBLIC;
+    SeasClick_ce->ce_flags |= ZEND_ACC_FINAL;
     return SUCCESS;
 }
 /* }}} */
