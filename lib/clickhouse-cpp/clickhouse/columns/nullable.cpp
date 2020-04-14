@@ -1,5 +1,6 @@
 #include "nullable.h"
 
+#include <stdexcept>
 #include <assert.h>
 
 namespace clickhouse {
