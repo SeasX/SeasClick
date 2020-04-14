@@ -7,6 +7,8 @@ compiler:
 os:
   - linux
 
+dist: trusty
+
 env:
   - REPORT_EXIT_STATUS=1 NO_INTERACTION=1
 
@@ -26,6 +28,7 @@ php:
   - 7.1
   - 7.2
   - 7.3
+  - 7.4
 
 notifications:
   email: whj199649@gmail.com
