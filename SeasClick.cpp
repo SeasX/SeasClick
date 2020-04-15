@@ -59,26 +59,30 @@ static PHP_METHOD(SEASCLICK_RES_NAME, __destruct);
 static PHP_METHOD(SEASCLICK_RES_NAME, select);
 static PHP_METHOD(SEASCLICK_RES_NAME, insert);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
+static PHP_METHOD(SEASCLICK_RES_NAME, ping);
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(SeasClick_construct, 0, 0, 1)
 ZEND_ARG_INFO(0, connectParams)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_select, 0, 0, 3)
+ZEND_BEGIN_ARG_INFO_EX(SeasClick_select, 0, 0, 3)
 ZEND_ARG_INFO(0, sql)
 ZEND_ARG_INFO(0, params)
 ZEND_ARG_INFO(0, fetch_mode)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insert, 0, 0, 3)
+ZEND_BEGIN_ARG_INFO_EX(SeasClick_insert, 0, 0, 3)
 ZEND_ARG_INFO(0, table)
 ZEND_ARG_INFO(0, columns)
 ZEND_ARG_INFO(0, values)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_execute, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(SeasClick_execute, 0, 0, 2)
 ZEND_ARG_INFO(0, sql)
 ZEND_ARG_INFO(0, params)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(SeasClick_ping, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 /* {{{ SeasClick_functions[] */
@@ -91,11 +95,12 @@ const zend_function_entry SeasClick_functions[] =
 
 const zend_function_entry SeasClick_methods[] =
 {
-    PHP_ME(SEASCLICK_RES_NAME, __construct,   SeasCilck_construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(SEASCLICK_RES_NAME, __construct,   SeasClick_construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(SEASCLICK_RES_NAME, __destruct,    NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
-    PHP_ME(SEASCLICK_RES_NAME, select,   SeasCilck_select, ZEND_ACC_PUBLIC)
-    PHP_ME(SEASCLICK_RES_NAME, insert,   SeasCilck_insert, ZEND_ACC_PUBLIC)
-    PHP_ME(SEASCLICK_RES_NAME, execute,   SeasCilck_execute, ZEND_ACC_PUBLIC)
+    PHP_ME(SEASCLICK_RES_NAME, select,   SeasClick_select, ZEND_ACC_PUBLIC)
+    PHP_ME(SEASCLICK_RES_NAME, insert,   SeasClick_insert, ZEND_ACC_PUBLIC)
+    PHP_ME(SEASCLICK_RES_NAME, execute,   SeasClick_execute, ZEND_ACC_PUBLIC)
+    PHP_ME(SEASCLICK_RES_NAME, ping,   SeasClick_ping, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
@@ -325,6 +330,22 @@ void getInsertSql(string *sql, char *table_name, zval *columns)
     }
     SC_HASHTABLE_FOREACH_END();
     *sql = "INSERT INTO " + (string)table_name + " ( " + fields_section.str() + " ) VALUES";
+}
+
+/* {{{ proto bool ping()
+ */
+PHP_METHOD(SEASCLICK_RES_NAME, ping)
+{
+        int key = Z_OBJ_HANDLE(*getThis());
+        Client *client = clientMap.at(key);
+
+        try {
+            client->Ping();
+        } catch (const std::exception& e) {
+            sc_zend_throw_exception(SeasClickException_ce, e.what(), 0 TSRMLS_CC);
+        }
+
+        RETURN_TRUE;
 }
 
 /* {{{ proto array select(string sql, array params, int mode)
