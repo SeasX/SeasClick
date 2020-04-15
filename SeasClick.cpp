@@ -61,7 +61,7 @@ static PHP_METHOD(SEASCLICK_RES_NAME, insert);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
-ZEND_ARG_INFO(0, connectParames)
+ZEND_ARG_INFO(0, connectParams)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_select, 0, 0, 3)
@@ -124,7 +124,10 @@ PHP_MINIT_FUNCTION(SeasClick)
     zend_declare_property_null(SeasClick_ce, "user", strlen("user"), ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_null(SeasClick_ce, "passwd", strlen("passwd"), ZEND_ACC_PROTECTED TSRMLS_CC);
     zend_declare_property_bool(SeasClick_ce, "compression", strlen("compression"), false, ZEND_ACC_PROTECTED TSRMLS_CC);
-
+    zend_declare_property_long(SeasClick_ce, "retry_timeout", strlen("retry_timeout"), 5, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_long(SeasClick_ce, "retry_count", strlen("retry_count"), 1, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_long(SeasClick_ce, "receive_timeout", strlen("receive_timeout"), 0, ZEND_ACC_PROTECTED TSRMLS_CC);
+    zend_declare_property_long(SeasClick_ce, "connect_timeout", strlen("connect_timeout"), 5, ZEND_ACC_PROTECTED TSRMLS_CC);
 
     REGISTER_SC_CLASS_CONST_LONG("FETCH_ONE", (zend_long)SC_FETCH_ONE);
     REGISTER_SC_CLASS_CONST_LONG("FETCH_KEY_PAIR", (zend_long)SC_FETCH_KEY_PAIR);
@@ -167,14 +170,14 @@ zend_module_entry SeasClick_module_entry =
 };
 /* }}} */
 
-/* {{{ proto object __construct(array connectParames)
+/* {{{ proto object __construct(array connectParams)
  */
 PHP_METHOD(SEASCLICK_RES_NAME, __construct)
 {
-    zval *connectParames;
+    zval *connectParams;
 
 #ifndef FAST_ZPP
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &connectParames) == FAILURE)
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &connectParams) == FAILURE)
     {
         return;
     }
@@ -182,13 +185,13 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
 #undef IS_UNDEF
 #define IS_UNDEF Z_EXPECTED_LONG
     ZEND_PARSE_PARAMETERS_START(1, 1)
-    Z_PARAM_ARRAY(connectParames)
+    Z_PARAM_ARRAY(connectParams)
     ZEND_PARSE_PARAMETERS_END();
 #undef IS_UNDEF
 #define IS_UNDEF 0
 #endif
 
-    HashTable *_ht = Z_ARRVAL_P(connectParames);
+    HashTable *_ht = Z_ARRVAL_P(connectParams);
     zval *value;
 
     zval *this_obj;
@@ -211,15 +214,47 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
         zend_update_property_bool(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, Z_LVAL_P(value) TSRMLS_CC);
     }
 
+    if (php_array_get_value(_ht, "retry_timeout", value))
+    {
+        convert_to_long(value);
+        zend_update_property_long(SeasClick_ce, this_obj, "retry_timeout", sizeof("retry_timeout") - 1, Z_LVAL_P(value) TSRMLS_CC);
+    }
+
+    if (php_array_get_value(_ht, "retry_count", value))
+    {
+        convert_to_long(value);
+        zend_update_property_long(SeasClick_ce, this_obj, "retry_count", sizeof("retry_count") - 1, Z_LVAL_P(value) TSRMLS_CC);
+    }
+
+    if (php_array_get_value(_ht, "connect_timeout", value))
+    {
+        convert_to_long(value);
+        zend_update_property_long(SeasClick_ce, this_obj, "connect_timeout", sizeof("connect_timeout") - 1, Z_LVAL_P(value) TSRMLS_CC);
+    }
+
+    if (php_array_get_value(_ht, "receive_timeout", value))
+    {
+        convert_to_long(value);
+        zend_update_property_long(SeasClick_ce, this_obj, "receive_timeout", sizeof("receive_timeout") - 1, Z_LVAL_P(value) TSRMLS_CC);
+    }
+
     zval *host = sc_zend_read_property(SeasClick_ce, this_obj, "host", sizeof("host") - 1, 0);
     zval *port = sc_zend_read_property(SeasClick_ce, this_obj, "port", sizeof("port") - 1, 0);
     zval *compression = sc_zend_read_property(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, 0);
+    zval *retry_timeout = sc_zend_read_property(SeasClick_ce, this_obj, "retry_timeout", sizeof("retry_timeout") - 1, 0);
+    zval *retry_count = sc_zend_read_property(SeasClick_ce, this_obj, "retry_count", sizeof("retry_count") - 1, 0);
+    zval *receive_timeout = sc_zend_read_property(SeasClick_ce, this_obj, "receive_timeout", sizeof("receive_timeout") - 1, 0);
+    zval *connect_timeout = sc_zend_read_property(SeasClick_ce, this_obj, "connect_timeout", sizeof("connect_timeout") - 1, 0);
 
     ClientOptions Options = ClientOptions()
                             .SetHost(Z_STRVAL_P(host))
                             .SetPort(Z_LVAL_P(port))
+                            .SetSendRetries(Z_LVAL_P(retry_count))
+                            .SetRetryTimeout(std::chrono::seconds(Z_LVAL_P(retry_timeout)))
+                            .SetSocketReceiveTimeout(std::chrono::seconds(Z_LVAL_P(receive_timeout)))
+                            .SetSocketConnectTimeout(std::chrono::seconds(Z_LVAL_P(connect_timeout)))
                             .SetPingBeforeQuery(false);
-    if (Z_TYPE_P(compression) == IS_TRUE)
+    if (Z_LVAL_P(compression) == 1)
     {
         Options = Options.SetCompressionMethod(CompressionMethod::LZ4);
     }

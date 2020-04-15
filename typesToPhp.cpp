@@ -976,7 +976,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
         auto tuple = columnRef->As<ColumnTuple>();
         if (fetch_mode & SC_FETCH_ONE) {
             array_init(arr);
-            for (size_t i = 0; i < tuple->tupleSize(); ++i)
+            for (size_t i = 0; i < tuple->TupleSize(); ++i)
             {
                 convertToZval(arr, (*tuple)[i], row, "tuple", 1, 0);
             }
@@ -984,7 +984,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
             zval *return_tmp;
             SC_MAKE_STD_ZVAL(return_tmp);
             array_init(return_tmp);
-            for (size_t i = 0; i < tuple->tupleSize(); ++i)
+            for (size_t i = 0; i < tuple->TupleSize(); ++i)
             {
                 convertToZval(return_tmp, (*tuple)[i], row, "tuple", 1, 0);
             }

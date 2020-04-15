@@ -59,6 +59,11 @@ struct ClientOptions {
     DECLARE_FIELD(send_retries, int, SetSendRetries, 1);
     /// Amount of time to wait before next retry.
     DECLARE_FIELD(retry_timeout, std::chrono::seconds, SetRetryTimeout, std::chrono::seconds(5));
+    /// Amount of time the socket waits for response.
+    /// If the timeout is set to zero (the default) then the operation will never timeout.
+    DECLARE_FIELD(socket_receive_timeout, std::chrono::seconds, SetSocketReceiveTimeout, std::chrono::seconds(0));
+    /// Amount of time to wait for connection to be established
+    DECLARE_FIELD(socket_connect_timeout, std::chrono::seconds, SetSocketConnectTimeout, std::chrono::seconds(5));
 
     /// Compression method.
     DECLARE_FIELD(compression_method, CompressionMethod, SetCompressionMethod, CompressionMethod::None);
@@ -92,6 +97,10 @@ public:
     /// Executes a select query which can be canceled by returning false from
     /// the data handler function \p cb.
     void SelectCancelable(const std::string& query, SelectCancelableCallback cb);
+
+    void InsertQuery(const std::string& query, SelectCallback cb);
+
+    void InsertData(const Block& block);
 
     /// Alias for Execute.
     void Select(const Query& query);

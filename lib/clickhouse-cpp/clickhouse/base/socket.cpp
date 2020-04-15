@@ -1,6 +1,7 @@
 #include "socket.h"
 #include "singleton.h"
 
+#include <chrono>
 #include <assert.h>
 #include <stdexcept>
 #include <system_error>
@@ -253,7 +254,7 @@ NetworkInitializer::NetworkInitializer() {
 }
 
 
-SOCKET SocketConnect(const NetworkAddress& addr) {
+SOCKET SocketConnect(const NetworkAddress& addr, std::chrono::seconds socketReceiveTimeout, std::chrono::seconds socketConnectTimeout) {
     int last_err = 0;
     for (auto res = addr.Info(); res != nullptr; res = res->ai_next) {
         SOCKET s(socket(res->ai_family, res->ai_socktype, res->ai_protocol));
@@ -264,6 +265,10 @@ SOCKET SocketConnect(const NetworkAddress& addr) {
 
         SetNonBlock(s, true);
 
+        /* Timeout in seconds */
+        timeval tv{socketReceiveTimeout.count(), 0};
+        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv , sizeof(tv));
+
         if (connect(s, res->ai_addr, (int)res->ai_addrlen) != 0) {
             int err = errno;
             if (err == EINPROGRESS || err == EAGAIN || err == EWOULDBLOCK) {
@@ -271,7 +276,7 @@ SOCKET SocketConnect(const NetworkAddress& addr) {
                 fd.fd = s;
                 fd.events = POLLOUT;
                 fd.revents = 0;
-                ssize_t rval = Poll(&fd, 1, 5000);
+                ssize_t rval = Poll(&fd, 1, socketConnectTimeout.count() * 1000);
 
                 if (rval == -1) {
                     throw std::system_error(errno, std::system_category(), "fail to connect");

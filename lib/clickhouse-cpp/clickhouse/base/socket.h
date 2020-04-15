@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <string>
+#include <chrono>
 
 #if defined(_win_)
 #   pragma comment(lib, "Ws2_32.lib")
@@ -106,7 +107,7 @@ static struct NetworkInitializer {
 } gNetworkInitializer;
 
 ///
-SOCKET SocketConnect(const NetworkAddress& addr);
+SOCKET SocketConnect(const NetworkAddress& addr, std::chrono::seconds socketReceiveTimeout, std::chrono::seconds socketConnectTimeout);
 
 ssize_t Poll(struct pollfd* fds, int nfds, int timeout) noexcept;
 

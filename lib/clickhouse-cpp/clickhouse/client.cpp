@@ -80,6 +80,10 @@ public:
 
     void ResetConnection();
 
+    void InsertQuery(Query query);
+
+    void InsertData(const Block& block);
+
 private:
     bool Handshake();
 
@@ -195,6 +199,19 @@ void Client::Impl::ExecuteQuery(Query query) {
     }
 }
 
+void Client::Impl::InsertData(const Block& block) {
+    // Send data.
+    SendData(block);
+    // Send empty block as marker of
+    // end of data.
+    SendData(Block());
+
+    // Wait for EOS.
+    while (ReceivePacket()) {
+        ;
+    }
+}
+
 void Client::Impl::Insert(const std::string& table_name, const Block& block) {
     if (options_.ping_before_query) {
         RetryGuard([this]() { Ping(); });
@@ -261,7 +278,7 @@ void Client::Impl::Ping() {
 }
 
 void Client::Impl::ResetConnection() {
-    SocketHolder s(SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port))));
+    SocketHolder s(SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port)), options_.socket_receive_timeout, options_.socket_connect_timeout));
 
     if (s.Closed()) {
         throw std::system_error(errno, std::system_category());
@@ -292,6 +309,32 @@ bool Client::Impl::Handshake() {
         return false;
     }
     return true;
+}
+
+void Client::Impl::InsertQuery(Query query) {
+    EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
+
+    if (options_.ping_before_query) {
+        RetryGuard([this]() { Ping(); });
+    }
+
+    SendQuery(query.GetText());
+
+    uint64_t server_packet;
+    // Receive data packet.
+    while (true) {
+        bool ret = ReceivePacket(&server_packet);
+
+        if (!ret) {
+            throw std::runtime_error("fail to receive data packet");
+        }
+        if (server_packet == ServerCodes::Data) {
+            break;
+        }
+        if (server_packet == ServerCodes::Progress) {
+            continue;
+        }
+    }
 }
 
 bool Client::Impl::ReceivePacket(uint64_t* server_packet) {
@@ -777,6 +820,14 @@ void Client::Select(const Query& query) {
 
 void Client::Insert(const std::string& table_name, const Block& block) {
     impl_->Insert(table_name, block);
+}
+
+void Client::InsertQuery(const std::string& query, SelectCallback cb) {
+    impl_->InsertQuery(Query(query).OnData(cb));
+}
+
+void Client::InsertData(const Block& block) {
+    impl_->InsertData(block);
 }
 
 void Client::Ping() {
