@@ -1,19 +1,18 @@
 ClickHouse C++ client [![Build Status](https://travis-ci.org/artpaul/clickhouse-cpp.svg?branch=master)](https://travis-ci.org/artpaul/clickhouse-cpp)
 =====
 
-C++ client for [Yandex ClickHouse](https://clickhouse.yandex/)
-
-## This repositorie change
-* [Add InsertQuery and InsertData methods](https://github.com/aiwhj/clickhouse-cpp/commit/bab28bcb5a509d80b8e2e0c7e89512446283dde5)
+C++ client for [ClickHouse](https://clickhouse.tech/)
 
 ## Supported data types
 
 * Array(T)
 * Date
 * DateTime
+* Decimal32, Decimal64, Decimal128
 * Enum8, Enum16
 * FixedString(N)
 * Float32, Float64
+* IPv4, IPv6
 * Nullable(T)
 * String
 * Tuple
@@ -24,7 +23,7 @@ C++ client for [Yandex ClickHouse](https://clickhouse.yandex/)
 ```sh
 $ mkdir build .
 $ cd build
-$ cmake ..
+$ cmake .. [-DBUILD_TESTS=ON]
 $ make
 ```
 

@@ -33,6 +33,13 @@ public:
         Enum8,
         Enum16,
         UUID,
+        IPv4,
+        IPv6,
+        Int128,
+        Decimal,
+        Decimal32,
+        Decimal64,
+        Decimal128,
     };
 
     struct EnumItem {
@@ -68,6 +75,14 @@ public:
 
     static TypeRef CreateDateTime();
 
+    static TypeRef CreateDecimal(size_t precision, size_t scale);
+
+    static TypeRef CreateIPv4();
+
+    static TypeRef CreateIPv6();
+
+    static TypeRef CreateNothing();
+
     static TypeRef CreateNullable(TypeRef nested_type);
 
     template <typename T>
@@ -92,6 +107,11 @@ private:
         TypeRef item_type;
     };
 
+    struct DecimalImpl {
+        size_t precision;
+        size_t scale;
+    };
+
     struct NullableImpl {
         TypeRef nested_type;
     };
@@ -113,6 +133,7 @@ private:
     const Code code_;
     union {
         ArrayImpl* array_;
+        DecimalImpl* decimal_;
         NullableImpl* nullable_;
         TupleImpl* tuple_;
         EnumImpl* enum_;
@@ -160,6 +181,11 @@ inline TypeRef Type::CreateSimple<int32_t>() {
 template <>
 inline TypeRef Type::CreateSimple<int64_t>() {
     return TypeRef(new Type(Int64));
+}
+
+template <>
+inline TypeRef Type::CreateSimple<__int128>() {
+    return TypeRef(new Type(Int128));
 }
 
 template <>
