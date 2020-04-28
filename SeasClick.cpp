@@ -510,6 +510,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         zval *return_tmp;
         for(size_t i = 0; i < columns_count; i++)
         {
+            zval *key = sc_zend_hash_index_find(columns_ht, i);
             SC_MAKE_STD_ZVAL(return_tmp);
             array_init(return_tmp);
 
@@ -520,6 +521,10 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
                     throw std::runtime_error("The insert function needs to pass in a two-dimensional array");
                 }
                 fzval = sc_zend_hash_index_find(Z_ARRVAL_P(pzval), i);
+                if (NULL == fzval && Z_TYPE_P(key) == IS_STRING)
+                {
+                    fzval = sc_zend_hash_find(Z_ARRVAL_P(pzval), Z_STRVAL_P(key), Z_STRLEN_P(key));
+                }
                 if (NULL == fzval)
                 {
                     throw std::runtime_error("The number of parameters inserted per line is inconsistent");
