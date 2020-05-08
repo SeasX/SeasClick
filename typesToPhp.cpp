@@ -201,8 +201,18 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
-            convert_to_long(array_value);
-            value->Append(Z_LVAL_P(array_value));
+            if (
+                Z_TYPE_P(array_value) == IS_STRING && Z_STRLEN_P(array_value) >= 3
+                && (
+                    *Z_STRVAL_P(array_value) == '0' &&
+                    ((*(Z_STRVAL_P(array_value) + 1) == 'x') || *(Z_STRVAL_P(array_value) + 1) == 'X')
+                )
+            ) {
+                value->Append(strtoull(Z_STRVAL_P(array_value), NULL, 0));
+            } else {
+                convert_to_long(array_value);
+                value->Append(Z_LVAL_P(array_value));
+            }
         }
         SC_HASHTABLE_FOREACH_END();
 
@@ -243,8 +253,17 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
-            convert_to_long(array_value);
-            value->Append(Z_LVAL_P(array_value));
+            if (
+                Z_TYPE_P(array_value) == IS_STRING && Z_STRLEN_P(array_value) >= 3
+                && (
+                    *Z_STRVAL_P(array_value) == '0' &&
+                    ((*(Z_STRVAL_P(array_value) + 1) == 'x') || *(Z_STRVAL_P(array_value) + 1) == 'X')
+                )) {
+                    value->Append(strtoul(Z_STRVAL_P(array_value), NULL, 0));
+                } else {
+                    convert_to_long(array_value);
+                    value->Append(Z_LVAL_P(array_value));
+                }
         }
         SC_HASHTABLE_FOREACH_END();
 
