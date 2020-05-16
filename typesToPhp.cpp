@@ -447,8 +447,12 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
             if (Z_TYPE_P(array_value) == IS_STRING && memchr(Z_STRVAL_P(array_value), '-', Z_STRLEN_P(array_value)) != NULL) {
                 value->Append((long)to_time_t(Z_STRVAL_P(array_value)));
             } else {
+                time_t t;
+                struct tm *tz;
                 convert_to_long(array_value);
-                value->Append(Z_LVAL_P(array_value));
+                t = (time_t) Z_LVAL_P(array_value);
+                tz = localtime(&t);
+                value->Append(Z_LVAL_P(array_value) + tz->tm_gmtoff);
             }
         }
         SC_HASHTABLE_FOREACH_END();
