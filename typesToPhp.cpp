@@ -871,8 +871,12 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 char buffer[32];
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
-                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
-                sc_add_next_index_stringl(arr, buffer, l, 1);
+                if (t > 0) {
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                    sc_add_next_index_stringl(arr, buffer, l, 1);
+                } else {
+                    add_next_index_null(arr);
+                }
             } else {
                 add_next_index_long(arr, (long)col->As<ColumnDateTime>()->At(row));
             }
@@ -883,8 +887,16 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 char buffer[32];
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
-                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
-                SC_SINGLE_STRING(buffer, l);
+                if (t > 0) {
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                    SC_SINGLE_STRING(buffer, l);
+                } else {
+                    if (fetch_mode & SC_FETCH_ONE) {
+                        ZVAL_NULL(arr);
+                    } else {
+                        sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                    }
+                }
             } else {
                 if (fetch_mode & SC_FETCH_ONE) {
                     ZVAL_LONG(arr, (long)col->As<ColumnDateTime>()->At(row));
@@ -904,8 +916,12 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 char buffer[16];
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDate>()->At(row);
-                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
-                sc_add_next_index_stringl(arr, buffer, l, 1);
+                if (t > 0) {
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                    sc_add_next_index_stringl(arr, buffer, l, 1);
+                } else {
+                    add_next_index_null(arr);
+                }
             } else {
                 add_next_index_long(arr, (long)col->As<ColumnDate>()->At(row));
             }
@@ -916,8 +932,16 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 char buffer[16];
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDate>()->At(row);
-                l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
-                SC_SINGLE_STRING(buffer, l);
+                if (t > 0) {
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                    SC_SINGLE_STRING(buffer, l);
+                } else {
+                    if (fetch_mode & SC_FETCH_ONE) {
+                        ZVAL_NULL(arr);
+                    } else {
+                        sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                    }
+                }
             } else {
                 if (fetch_mode & SC_FETCH_ONE) {
                     ZVAL_LONG(arr, (long)col->As<ColumnDate>()->At(row));
