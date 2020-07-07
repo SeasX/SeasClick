@@ -872,7 +872,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
                 if (t > 0) {
-                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmtime(&t));
                     sc_add_next_index_stringl(arr, buffer, l, 1);
                 } else {
                     add_next_index_null(arr);
@@ -888,7 +888,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDateTime>()->At(row);
                 if (t > 0) {
-                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localtime(&t));
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmtime(&t));
                     SC_SINGLE_STRING(buffer, l);
                 } else {
                     if (fetch_mode & SC_FETCH_ONE) {
@@ -917,7 +917,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDate>()->At(row);
                 if (t > 0) {
-                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", gmtime(&t));
                     sc_add_next_index_stringl(arr, buffer, l, 1);
                 } else {
                     add_next_index_null(arr);
@@ -933,7 +933,7 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
                 size_t l;
                 std::time_t t = (long)col->As<ColumnDate>()->At(row);
                 if (t > 0) {
-                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", localtime(&t));
+                    l = strftime(buffer, sizeof(buffer), "%Y-%m-%d", gmtime(&t));
                     SC_SINGLE_STRING(buffer, l);
                 } else {
                     if (fetch_mode & SC_FETCH_ONE) {
