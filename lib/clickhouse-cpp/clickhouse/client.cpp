@@ -17,7 +17,6 @@
 #include <thread>
 #include <vector>
 #include <sstream>
-#include <iostream>
 
 #define DBMS_NAME                                       "ClickHouse"
 #define DBMS_VERSION_MAJOR                              1
@@ -25,7 +24,6 @@
 #define REVISION                                        54126
 
 #define DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES         50264
-#define DBMS_MIN_REVISION_WITH_TOTAL_ROWS_IN_PROGRESS   51554
 #define DBMS_MIN_REVISION_WITH_BLOCK_INFO               51903
 #define DBMS_MIN_REVISION_WITH_CLIENT_INFO              54032
 #define DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE          54058
@@ -78,13 +76,13 @@ public:
 
     void Insert(const std::string& table_name, const Block& block);
 
-    void InsertQuery(Query query);
-
-    void InsertData(const Block& block);
-
     void Ping();
 
     void ResetConnection();
+
+    void InsertQuery(Query query);
+
+    void InsertData(const Block& block);
 
 private:
     bool Handshake();
@@ -102,7 +100,7 @@ private:
     bool ReceiveHello();
 
     /// Reads data packet form input stream.
-    bool ReceiveData();
+    bool ReceiveData(std::function<void(const Block&)> cb);
 
     /// Reads exception packet form input stream.
     bool ReceiveException(bool rethrow = false);
@@ -110,10 +108,6 @@ private:
     void WriteBlock(const Block& block, CodedOutputStream* output);
 
 private:
-    void Disconnect() {
-        socket_.Close();
-    }
-
     /// In case of network errors tries to reconnect to server and
     /// call fuc several times.
     void RetryGuard(std::function<void()> fuc);
@@ -188,9 +182,8 @@ Client::Impl::Impl(const ClientOptions& opts)
     }
 }
 
-Client::Impl::~Impl() {
-    Disconnect();
-}
+Client::Impl::~Impl()
+{ }
 
 void Client::Impl::ExecuteQuery(Query query) {
     EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
@@ -201,6 +194,19 @@ void Client::Impl::ExecuteQuery(Query query) {
 
     SendQuery(query.GetText());
 
+    while (ReceivePacket()) {
+        ;
+    }
+}
+
+void Client::Impl::InsertData(const Block& block) {
+    // Send data.
+    SendData(block);
+    // Send empty block as marker of
+    // end of data.
+    SendData(Block());
+
+    // Wait for EOS.
     while (ReceivePacket()) {
         ;
     }
@@ -259,45 +265,6 @@ void Client::Impl::Insert(const std::string& table_name, const Block& block) {
     }
 }
 
-void Client::Impl::InsertQuery(Query query) {
-    EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
-
-    if (options_.ping_before_query) {
-        RetryGuard([this]() { Ping(); });
-    }
-
-    SendQuery(query.GetText());
-    
-    uint64_t server_packet;
-    // Receive data packet.
-    while (true) {
-        bool ret = ReceivePacket(&server_packet);
-
-        if (!ret) {
-            throw std::runtime_error("fail to receive data packet");
-        }
-        if (server_packet == ServerCodes::Data) {
-            break;
-        }
-        if (server_packet == ServerCodes::Progress) {
-            continue;
-        }
-    }
-}
-
-void Client::Impl::InsertData(const Block& block) {
-    // Send data.
-    SendData(block);
-    // Send empty block as marker of
-    // end of data.
-    SendData(Block());
-
-    // Wait for EOS.
-    while (ReceivePacket()) {
-        ;
-    }
-}
-
 void Client::Impl::Ping() {
     WireFormat::WriteUInt64(&output_, ClientCodes::Ping);
     output_.Flush();
@@ -311,10 +278,16 @@ void Client::Impl::Ping() {
 }
 
 void Client::Impl::ResetConnection() {
-    SocketHolder s(SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port))));
+    SocketHolder s(SocketConnect(NetworkAddress(options_.host, std::to_string(options_.port)), options_.socket_receive_timeout, options_.socket_connect_timeout));
 
     if (s.Closed()) {
         throw std::system_error(errno, std::system_category());
+    }
+
+    if (options_.tcp_keepalive) {
+        s.SetTcpKeepAlive(options_.tcp_keepalive_idle.count(),
+                          options_.tcp_keepalive_intvl.count(),
+                          options_.tcp_keepalive_cnt);
     }
 
     socket_ = std::move(s);
@@ -338,6 +311,32 @@ bool Client::Impl::Handshake() {
     return true;
 }
 
+void Client::Impl::InsertQuery(Query query) {
+    EnsureNull en(static_cast<QueryEvents*>(&query), &events_);
+
+    if (options_.ping_before_query) {
+        RetryGuard([this]() { Ping(); });
+    }
+
+    SendQuery(query.GetText());
+
+    uint64_t server_packet;
+    // Receive data packet.
+    while (true) {
+        bool ret = ReceivePacket(&server_packet);
+
+        if (!ret) {
+            throw std::runtime_error("fail to receive data packet");
+        }
+        if (server_packet == ServerCodes::Data) {
+            break;
+        }
+        if (server_packet == ServerCodes::Progress) {
+            continue;
+        }
+    }
+}
+
 bool Client::Impl::ReceivePacket(uint64_t* server_packet) {
     uint64_t packet_type = 0;
 
@@ -350,7 +349,16 @@ bool Client::Impl::ReceivePacket(uint64_t* server_packet) {
 
     switch (packet_type) {
     case ServerCodes::Data: {
-        if (!ReceiveData()) {
+        auto cb = [this] (const Block& block) {
+            if (events_) {
+                events_->OnData(block);
+                if (!events_->OnDataCancelable(block)) {
+                    SendCancel();
+                }
+            }
+        };
+
+        if (!ReceiveData(cb)) {
             throw std::runtime_error("can't read data packet from input stream");
         }
         return true;
@@ -399,10 +407,8 @@ bool Client::Impl::ReceivePacket(uint64_t* server_packet) {
         if (!WireFormat::ReadUInt64(&input_, &info.bytes)) {
             return false;
         }
-        if (REVISION >= DBMS_MIN_REVISION_WITH_TOTAL_ROWS_IN_PROGRESS) {
-            if (!WireFormat::ReadUInt64(&input_, &info.total_rows)) {
-                return false;
-            }
+        if (!WireFormat::ReadUInt64(&input_, &info.total_rows)) {
+            return false;
         }
 
         if (events_) {
@@ -421,6 +427,32 @@ bool Client::Impl::ReceivePacket(uint64_t* server_packet) {
             events_->OnFinish();
         }
         return false;
+    }
+
+    case ServerCodes::Totals: {
+        auto cb = [this] (const Block& block) {
+            if (events_) {
+                events_->OnTotals(block);
+            }
+        };
+
+        if (!ReceiveData(cb)) {
+            throw std::runtime_error("can't read data packet with totals from input stream");
+        }
+        return true;
+    }
+
+    case ServerCodes::Extremes: {
+       auto cb = [this] (const Block& block) {
+            if (events_) {
+                events_->OnExtremes(block);
+            }
+        };
+
+        if (!ReceiveData(cb)) {
+            throw std::runtime_error("can't read data packet with extremes from input stream");
+        }
+        return true;
     }
 
     default:
@@ -492,15 +524,13 @@ bool Client::Impl::ReadBlock(Block* block, CodedInputStream* input) {
     return true;
 }
 
-bool Client::Impl::ReceiveData() {
+bool Client::Impl::ReceiveData(std::function<void(const Block&)> cb) {
     Block block;
+    std::string table_name;
 
-    if (REVISION >= DBMS_MIN_REVISION_WITH_TEMPORARY_TABLES) {
-        std::string table_name;
-
-        if (!WireFormat::ReadString(&input_, &table_name)) {
-            return false;
-        }
+    // Read name of a table.
+    if (!WireFormat::ReadString(&input_, &table_name)) {
+        return false;
     }
 
     if (compression_ == CompressionState::Enable) {
@@ -516,12 +546,7 @@ bool Client::Impl::ReceiveData() {
         }
     }
 
-    if (events_) {
-        events_->OnData(block);
-        if (!events_->OnDataCancelable(block)) {
-            SendCancel();
-        }
-    }
+    cb(block);
 
     return true;
 }

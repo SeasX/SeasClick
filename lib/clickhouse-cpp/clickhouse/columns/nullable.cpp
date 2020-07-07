@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <assert.h>
+#include <stdexcept>
 
 namespace clickhouse {
 

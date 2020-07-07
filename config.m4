@@ -79,6 +79,9 @@ if test "$PHP_SEASCLICK" != "no"; then
         lib/clickhouse-cpp/clickhouse/columns/string.cpp \
         lib/clickhouse-cpp/clickhouse/columns/tuple.cpp \
         lib/clickhouse-cpp/clickhouse/columns/uuid.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/decimal.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip4.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip6.cpp \
         lib/clickhouse-cpp/clickhouse/types/type_parser.cpp \
         lib/clickhouse-cpp/clickhouse/types/types.cpp \
         lib/clickhouse-cpp/contrib/cityhash/city.cc \

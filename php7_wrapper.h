@@ -23,6 +23,8 @@
 // PHP7+
 #if PHP_MAJOR_VERSION < 7
 
+typedef long zend_long;
+
 #if PHP_VERSION_ID < 50500
 #define sc_zend_throw_exception(a, b, c) zend_throw_exception(a, (char *)b, c)
 #else
@@ -34,6 +36,12 @@
 #define SC_RETURN_STRINGL(k, l) RETURN_STRINGL(k, l, 1)
 #define sc_zval_ptr_dtor                      zval_ptr_dtor
 #define sc_zval_add_ref(a)                       zval_add_ref(&a)
+
+static inline int sc_zend_hash_index_update(HashTable *ht, ulong h, void *pData)
+{
+    return zend_hash_index_update(ht, h, pData, sizeof(zval *), NULL);
+}
+
 static inline int sc_add_assoc_long_ex(zval *arg, const char *key, size_t key_len, long value)
 {
     return add_assoc_long_ex(arg, key, key_len + 1, value);
@@ -107,6 +115,7 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 // PHP5
 #define sc_zend_throw_exception zend_throw_exception
 
+#define sc_zend_hash_index_update   zend_hash_index_update
 #define sc_zend_hash_find   zend_hash_str_find
 #define sc_zend_hash_index_find   zend_hash_index_find
 #define SC_MAKE_STD_ZVAL(p)             zval _stack_zval_##p; p = &(_stack_zval_##p)

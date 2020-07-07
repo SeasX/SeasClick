@@ -22,7 +22,7 @@ ColumnRef createColumn(TypeRef type);
 
 ColumnRef insertColumn(TypeRef type, zval *value_zval);
 
-void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array);
+void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array, long fetch_mode);
 
 void zvalToBlock(Block& blockDes, Block& blockSrc, zend_ulong num_key, zval *value_zval);
 

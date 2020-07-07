@@ -49,6 +49,11 @@ typedef unsigned long ulong_t;
 #define SEASCLICK_G(v) (SeasClick_globals.v)
 #endif
 
+#define SC_FETCH_ONE 1
+#define SC_FETCH_KEY_PAIR 2
+#define SC_FETCH_DATE_AS_STRINGS 4
+#define SC_FETCH_COLUMN 8
+
 #define SEASCLICK_RES_NAME "SeasClick"
 
 #endif	/* PHP_SEASCLICK_H */

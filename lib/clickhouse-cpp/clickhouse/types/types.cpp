@@ -15,6 +15,8 @@ Type::Type(const Code code)
         nullable_ = new NullableImpl;
     } else if (code_ == Enum8 || code_ == Enum16) {
         enum_ = new EnumImpl;
+    } else if (code_== Decimal || code_== Decimal32 || code_ == Decimal64 || code_ == Decimal128) {
+        decimal_ = new DecimalImpl;
     }
 }
 
@@ -27,6 +29,8 @@ Type::~Type() {
         delete nullable_;
     } else if (code_ == Enum8 || code_ == Enum16) {
         delete enum_;
+    } else if (code_== Decimal || code_== Decimal32 || code_ == Decimal64 || code_ == Decimal128) {
+        delete decimal_;
     }
 }
 
@@ -49,7 +53,10 @@ TypeRef Type::GetNestedType() const {
 }
 
 std::vector<TypeRef> Type::GetTupleType() const {
-    return tuple_->item_types;
+    if (code_ == Tuple) {
+        return tuple_->item_types;
+    }
+    return std::vector<TypeRef>();
 }
 
 std::string Type::GetName() const {
@@ -64,6 +71,8 @@ std::string Type::GetName() const {
             return "Int32";
         case Int64:
             return "Int64";
+        case Int128:
+            return "Int128";
         case UInt8:
             return "UInt8";
         case UInt16:
@@ -82,6 +91,10 @@ std::string Type::GetName() const {
             return "String";
         case FixedString:
             return "FixedString(" + std::to_string(string_size_) + ")";
+        case IPv4:
+            return "IPv4";
+        case IPv6:
+            return "IPv6";
         case DateTime:
             return "DateTime";
         case Date:
@@ -125,6 +138,14 @@ std::string Type::GetName() const {
             result += ")";
             return result;
         }
+        case Decimal:
+            return "Decimal(" + std::to_string(decimal_->precision) + "," + std::to_string(decimal_->scale) + ")";
+        case Decimal32:
+            return "Decimal32(" + std::to_string(decimal_->scale) + ")";
+        case Decimal64:
+            return "Decimal64(" + std::to_string(decimal_->scale) + ")";
+        case Decimal128:
+            return "Decimal128(" + std::to_string(decimal_->scale) + ")";
     }
 
     return std::string();
@@ -146,6 +167,25 @@ TypeRef Type::CreateDate() {
 
 TypeRef Type::CreateDateTime() {
     return TypeRef(new Type(Type::DateTime));
+}
+
+TypeRef Type::CreateDecimal(size_t precision, size_t scale) {
+    TypeRef type(new Type(Type::Decimal));
+    type->decimal_->precision = precision;
+    type->decimal_->scale = scale;
+    return type;
+}
+
+TypeRef Type::CreateIPv4() {
+    return TypeRef(new Type(Type::IPv4));
+}
+
+TypeRef Type::CreateIPv6() {
+    return TypeRef(new Type(Type::IPv6));
+}
+
+TypeRef Type::CreateNothing() {
+    return TypeRef(new Type(Type::Void));
 }
 
 TypeRef Type::CreateNullable(TypeRef nested_type) {

@@ -5,7 +5,10 @@
 
 #include "columns/array.h"
 #include "columns/date.h"
+#include "columns/decimal.h"
 #include "columns/enum.h"
+#include "columns/ip4.h"
+#include "columns/ip6.h"
 #include "columns/nullable.h"
 #include "columns/numeric.h"
 #include "columns/string.h"
@@ -56,9 +59,20 @@ struct ClientOptions {
     DECLARE_FIELD(send_retries, int, SetSendRetries, 1);
     /// Amount of time to wait before next retry.
     DECLARE_FIELD(retry_timeout, std::chrono::seconds, SetRetryTimeout, std::chrono::seconds(5));
+    /// Amount of time the socket waits for response.
+    /// If the timeout is set to zero (the default) then the operation will never timeout.
+    DECLARE_FIELD(socket_receive_timeout, std::chrono::seconds, SetSocketReceiveTimeout, std::chrono::seconds(0));
+    /// Amount of time to wait for connection to be established
+    DECLARE_FIELD(socket_connect_timeout, std::chrono::seconds, SetSocketConnectTimeout, std::chrono::seconds(5));
 
     /// Compression method.
     DECLARE_FIELD(compression_method, CompressionMethod, SetCompressionMethod, CompressionMethod::None);
+
+    /// TCP Keep alive options
+    DECLARE_FIELD(tcp_keepalive, bool, TcpKeepAlive, false);
+    DECLARE_FIELD(tcp_keepalive_idle, std::chrono::seconds, SetTcpKeepAliveIdle, std::chrono::seconds(60));
+    DECLARE_FIELD(tcp_keepalive_intvl, std::chrono::seconds, SetTcpKeepAliveInterval, std::chrono::seconds(5));
+    DECLARE_FIELD(tcp_keepalive_cnt, int, SetTcpKeepAliveCount, 3);
 
 #undef DECLARE_FIELD
 };
@@ -84,15 +98,15 @@ public:
     /// the data handler function \p cb.
     void SelectCancelable(const std::string& query, SelectCancelableCallback cb);
 
+    void InsertQuery(const std::string& query, SelectCallback cb);
+
+    void InsertData(const Block& block);
+
     /// Alias for Execute.
     void Select(const Query& query);
 
     /// Intends for insert block of data into a table \p table_name.
     void Insert(const std::string& table_name, const Block& block);
-    
-    void InsertQuery(const std::string& query, SelectCallback cb);
-
-    void InsertData(const Block& block);
 
     /// Ping server for aliveness.
     void Ping();
