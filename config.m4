@@ -68,7 +68,7 @@ if test "$PHP_SEASCLICK" != "no"; then
   PHP_REQUIRE_CXX()
   PHP_SUBST(SEASCLICK_SHARED_LIBADD)
   PHP_ADD_LIBRARY(stdc++, 1, SEASCLICK_SHARED_LIBADD)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=c++17"
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=gnu++17"
   SeasClick_source_file="SeasClick.cpp \
         typesToPhp.cpp \
         lib/clickhouse-cpp/clickhouse/base/coded.cpp \
@@ -77,22 +77,30 @@ if test "$PHP_SEASCLICK" != "no"; then
         lib/clickhouse-cpp/clickhouse/base/output.cpp \
         lib/clickhouse-cpp/clickhouse/base/platform.cpp \
         lib/clickhouse-cpp/clickhouse/base/socket.cpp \
+
         lib/clickhouse-cpp/clickhouse/columns/array.cpp \
         lib/clickhouse-cpp/clickhouse/columns/date.cpp \
         lib/clickhouse-cpp/clickhouse/columns/decimal.cpp \
         lib/clickhouse-cpp/clickhouse/columns/enum.cpp \
         lib/clickhouse-cpp/clickhouse/columns/factory.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip4.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip6.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/lowcardinality.cpp \
         lib/clickhouse-cpp/clickhouse/columns/nullable.cpp \
         lib/clickhouse-cpp/clickhouse/columns/numeric.cpp \
         lib/clickhouse-cpp/clickhouse/columns/string.cpp \
         lib/clickhouse-cpp/clickhouse/columns/tuple.cpp \
         lib/clickhouse-cpp/clickhouse/columns/uuid.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/itemview.cpp \
+        
         lib/clickhouse-cpp/clickhouse/types/type_parser.cpp \
         lib/clickhouse-cpp/clickhouse/types/types.cpp \
+
         lib/clickhouse-cpp/contrib/cityhash/city.cc \
         lib/clickhouse-cpp/contrib/lz4/lz4.c \
         lib/clickhouse-cpp/contrib/lz4/lz4hc.c \
         lib/clickhouse-cpp/contrib/gtest/gtest-all.cc \
+        
         lib/clickhouse-cpp/clickhouse/block.cpp \
         lib/clickhouse-cpp/clickhouse/client.cpp \
         lib/clickhouse-cpp/clickhouse/query.cpp"

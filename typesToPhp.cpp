@@ -59,6 +59,7 @@ ColumnRef createColumn(TypeRef type)
     {
         return std::make_shared<ColumnUInt16>();
     }
+    case Type::Code::IPv4:
     case Type::Code::UInt32:
     {
         return std::make_shared<ColumnUInt32>();
@@ -80,6 +81,10 @@ ColumnRef createColumn(TypeRef type)
     {
         return std::make_shared<ColumnInt64>();
     }
+    case Type::Code::Int128:
+    {
+        return std::make_shared<ColumnInt128>();
+    }
 
     case Type::Code::UUID:
     {
@@ -99,6 +104,7 @@ ColumnRef createColumn(TypeRef type)
     {
         return std::make_shared<ColumnString>();
     }
+    case Type::Code::IPv6:
     case Type::Code::FixedString:
     {
         string typeName = type->GetName();
@@ -681,7 +687,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -694,7 +700,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -707,7 +713,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -721,7 +727,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -735,7 +741,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -748,7 +754,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -761,7 +767,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -774,7 +780,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -787,7 +793,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col);
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -801,11 +807,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         second << std::setw(16) << std::setfill('0') << hex << col.second;
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)(first.str() + second.str()).data(), (first.str() + second.str()).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)(first.str() + second.str()).c_str(), (first.str() + second.str()).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)(first.str() + second.str()).data(), (first.str() + second.str()).length(), 1);
         }
         break;
     }
@@ -823,7 +829,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), d);
+            sc_add_assoc_double_ex(arr, column_name.data(), column_name.length(), d);
         }
         break;
     }
@@ -836,7 +842,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_double_ex(arr, column_name.c_str(), column_name.length(), (double)col);
+            sc_add_assoc_double_ex(arr, column_name.data(), column_name.length(), (double)col);
         }
         break;
     }
@@ -846,11 +852,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         auto col = (*columnRef->As<ColumnString>())[row];
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)col.c_str(), col.length(), 1);
+            sc_add_next_index_stringl(arr, (char *)col.data(), col.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)col.c_str(), col.length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)col.data(), col.length(), 1);
         }
         break;
     }
@@ -860,11 +866,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         auto col = (*columnRef->As<ColumnFixedString>())[row];
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)col.c_str(), col.length(), 1);
+            sc_add_next_index_stringl(arr, (char *)col.data(), col.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)col.c_str(), strlen((char *)col.c_str()), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)col.data(), strlen((char *)col.data()), 1);
         }
         break;
     }
@@ -878,7 +884,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDateTime>()->At(row));
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col->As<ColumnDateTime>()->At(row));
         }
         break;
     }
@@ -891,7 +897,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.c_str(), column_name.length(), (zend_ulong)col->As<ColumnDate>()->At(row));
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col->As<ColumnDate>()->At(row));
         }
         break;
     }
@@ -913,7 +919,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+            sc_add_assoc_zval_ex(arr, column_name.data(), column_name.length(), return_tmp);
         }
         break;
     }
@@ -923,11 +929,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         auto array = columnRef->As<ColumnEnum8>();
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
         }
         break;
     }
@@ -936,11 +942,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         auto array = columnRef->As<ColumnEnum16>();
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)array->NameAt(row).c_str(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
         }
         break;
     }
@@ -956,7 +962,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
             }
             else
             {
-                sc_add_assoc_null_ex(arr, column_name.c_str(), column_name.length());
+                sc_add_assoc_null_ex(arr, column_name.data(), column_name.length());
             }
         }
         else
@@ -982,7 +988,7 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         else
         {
-            sc_add_assoc_zval_ex(arr, column_name.c_str(), column_name.length(), return_tmp);
+            sc_add_assoc_zval_ex(arr, column_name.data(), column_name.length(), return_tmp);
         }
         break;
     }
@@ -995,11 +1001,11 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         auto str = int128_to_string(col->At(row), col->Type()->As<DecimalType>()->GetScale());
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)str.c_str(), str.length(), 1);
+            sc_add_next_index_stringl(arr, (char *)str.data(), str.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.c_str(), column_name.length(), (char *)str.c_str(), str.length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)str.data(), str.length(), 1);
         }
         break;
     }
