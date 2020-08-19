@@ -60,6 +60,9 @@ ColumnRef createColumn(TypeRef type)
         return std::make_shared<ColumnUInt16>();
     }
     case Type::Code::IPv4:
+    {
+        return std::make_shared<ColumnIPv4>();
+    }
     case Type::Code::UInt32:
     {
         return std::make_shared<ColumnUInt32>();
@@ -105,6 +108,9 @@ ColumnRef createColumn(TypeRef type)
         return std::make_shared<ColumnString>();
     }
     case Type::Code::IPv6:
+    {
+        return std::make_shared<ColumnIPv6>();
+    }
     case Type::Code::FixedString:
     {
         string typeName = type->GetName();
@@ -206,7 +212,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::UInt8:
     {
@@ -220,7 +225,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::UInt16:
     {
@@ -234,10 +238,29 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
+    }
+    case Type::Code::IPv4:
+    {
+        auto value = std::make_shared<ColumnIPv4>();
+
+        SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
+        {
+            if (Z_TYPE_P(array_value) == IS_STRING)
+            {
+                convert_to_string(array_value);
+                value->Append((string)Z_STRVAL_P(array_value));
+            }
+            else
+            {
+                convert_to_long(array_value);
+                value->Append(Z_LVAL_P(array_value));
+            }
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        return value;
     }
     case Type::Code::UInt32:
-    case Type::Code::IPv4:
     {
         auto value = std::make_shared<ColumnUInt32>();
 
@@ -249,7 +272,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::Int8:
@@ -264,7 +286,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Int16:
     {
@@ -278,7 +299,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Int32:
     {
@@ -292,7 +312,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Int64:
     {
@@ -306,7 +325,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::UUID:
@@ -339,7 +357,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         }
         SC_HASHTABLE_FOREACH_END();
         return value;
-        break;
     }
 
     case Type::Code::Float32:
@@ -354,7 +371,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Float64:
     {
@@ -368,7 +384,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::String:
@@ -385,7 +400,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         return value;
     }
     case Type::Code::FixedString:
-    case Type::Code::IPv6:
     {
         string typeName = type->GetName();
         typeName.erase(typeName.find("FixedString("), 12);
@@ -396,6 +410,26 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         {
             convert_to_string(array_value);
             value->Append((string)Z_STRVAL_P(array_value));
+        }
+        SC_HASHTABLE_FOREACH_END();
+
+        return value;
+    }
+    case Type::Code::IPv6:
+    {
+        auto value = std::make_shared<ColumnIPv6>();
+        SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
+        {
+            if (Z_TYPE_P(array_value) == IS_STRING)
+            {
+                convert_to_string(array_value);
+                value->Append((string)Z_STRVAL_P(array_value));
+            }
+            else
+            {
+                convert_to_long(array_value);
+                value->Append(Z_LVAL_P(array_value));
+            }
         }
         SC_HASHTABLE_FOREACH_END();
 
@@ -414,7 +448,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Date:
     {
@@ -428,7 +461,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::Array:
@@ -457,7 +489,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::Enum8:
@@ -494,7 +525,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
     case Type::Code::Enum16:
     {
@@ -530,7 +560,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return value;
-        break;
     }
 
     case Type::Code::Nullable:
@@ -553,7 +582,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         ColumnRef child = insertColumn(type->As<NullableType>()->GetNestedType(), value_zval);
 
         return std::make_shared<ColumnNullable>(child, nulls);
-        break;
     }
 
     case Type::Code::Tuple:
@@ -613,7 +641,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         sc_zval_ptr_dtor(&return_should);
 
         return std::make_shared<ColumnTuple>(columns);
-        break;
     }
 
     case Type::Code::Decimal32:
@@ -630,7 +657,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return result;
-        break;
     }
     case Type::Code::Decimal64:
     {
@@ -646,7 +672,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return result;
-        break;
     }
     case Type::Code::Decimal128:
     {
@@ -662,7 +687,6 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         SC_HASHTABLE_FOREACH_END();
 
         return result;
-        break;
     }
 
     case Type::Code::Void:
@@ -717,8 +741,20 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         break;
     }
-    case Type::Code::UInt32:
     case Type::Code::IPv4:
+    {
+        auto col = columnRef->As<ColumnIPv4>()->AsString(row);
+        if (is_array)
+        {
+            sc_add_next_index_stringl(arr, (char *)col.data(), col.length(), 1);
+        }
+        else
+        {
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)col.data(), col.length(), 1);
+        }
+        break;
+    }
+    case Type::Code::UInt32:
     {
         auto col = (*columnRef->As<ColumnUInt32>())[row];
         if (is_array)
@@ -860,8 +896,22 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
         }
         break;
     }
-    case Type::Code::FixedString:
+
     case Type::Code::IPv6:
+    {
+        auto col = columnRef->As<ColumnIPv6>()->AsString(row);
+        if (is_array)
+        {
+            sc_add_next_index_stringl(arr, (char *)col.data(), col.length(), 1);
+        }
+        else
+        {
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)col.data(), strlen((char *)col.data()), 1);
+        }
+        break;
+    }
+
+    case Type::Code::FixedString:
     {
         auto col = (*columnRef->As<ColumnFixedString>())[row];
         if (is_array)
@@ -877,27 +927,27 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
 
     case Type::Code::DateTime:
     {
-        auto col = columnRef->As<ColumnDateTime>();
+        auto col = columnRef->As<ColumnDateTime>()->At(row);
         if (is_array)
         {
-            add_next_index_long(arr, (long)col->As<ColumnDateTime>()->At(row));
+            add_next_index_long(arr, (long)col);
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col->As<ColumnDateTime>()->At(row));
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
     case Type::Code::Date:
     {
-        auto col = columnRef->As<ColumnDate>();
+        auto col = columnRef->As<ColumnDate>()->At(row);
         if (is_array)
         {
-            add_next_index_long(arr, (long)col->As<ColumnDate>()->At(row));
+            add_next_index_long(arr, (long)col);
         }
         else
         {
-            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col->As<ColumnDate>()->At(row));
+            sc_add_assoc_long_ex(arr, column_name.data(), column_name.length(), (zend_ulong)col);
         }
         break;
     }
@@ -926,27 +976,27 @@ void convertToZval(zval *arr, const ColumnRef &columnRef, int row, string column
 
     case Type::Code::Enum8:
     {
-        auto array = columnRef->As<ColumnEnum8>();
+        auto array = columnRef->As<ColumnEnum8>()->NameAt(row);
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array.data(), array.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array.data(), array.length(), 1);
         }
         break;
     }
     case Type::Code::Enum16:
     {
-        auto array = columnRef->As<ColumnEnum16>();
+        auto array = columnRef->As<ColumnEnum16>()->NameAt(row);
         if (is_array)
         {
-            sc_add_next_index_stringl(arr, (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
+            sc_add_next_index_stringl(arr, (char *)array.data(), array.length(), 1);
         }
         else
         {
-            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array->NameAt(row).data(), array->NameAt(row).length(), 1);
+            sc_add_assoc_stringl_ex(arr, column_name.data(), column_name.length(), (char *)array.data(), array.length(), 1);
         }
         break;
     }
