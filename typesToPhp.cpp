@@ -434,8 +434,17 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
-            convert_to_long(array_value);
-            value->Append(Z_LVAL_P(array_value));
+            if (Z_TYPE_P(array_value) == IS_STRING)
+            {
+                convert_to_string(array_value)
+                time_t tmp = stringToDatetime((string)Z_STRVAL_P(array_value));
+                value->Append(tmp);
+            }
+            else
+            {
+                convert_to_long(array_value);
+                value->Append(Z_LVAL_P(array_value));
+            }
         }
         SC_HASHTABLE_FOREACH_END();
 
@@ -447,8 +456,17 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
 
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
-            convert_to_long(array_value);
-            value->Append(Z_LVAL_P(array_value));
+            if (Z_TYPE_P(array_value) == IS_STRING)
+            {
+                convert_to_string(array_value)
+                time_t tmp = stringToDatetime((string)Z_STRVAL_P(array_value));
+                value->Append(tmp);
+            }
+            else
+            {
+                convert_to_long(array_value);
+                value->Append(Z_LVAL_P(array_value));
+            }
         }
         SC_HASHTABLE_FOREACH_END();
 
@@ -1100,6 +1118,23 @@ void zvalToBlock(Block &blockDes, Block &blockSrc, zend_ulong num_key, zval *val
     ColumnRef column = insertColumn(blockSrc[num_key]->Type(), value_zval);
 
     blockDes.AppendColumn(blockSrc.GetColumnName(num_key), column);
+}
+
+inline time_t stringToDatetime(std::string str)
+{
+    char *cha = (char *)str.data();
+    tm tm_;
+    int year, month, day, hour, minute, second;
+    sscanf(cha, "%d-%d-%d %d:%d:%d", &year, &month, &day, &hour, &minute, &second);
+    tm_.tm_year = year - 1900;
+    tm_.tm_mon = month - 1;
+    tm_.tm_mday = day;
+    tm_.tm_hour = hour;
+    tm_.tm_min = minute;
+    tm_.tm_sec = second;
+    tm_.tm_isdst = 0;
+    time_t t_ = mktime(&tm_);
+    return t_;
 }
 
 /*

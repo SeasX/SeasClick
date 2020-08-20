@@ -28,6 +28,8 @@ void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column
 
 void zvalToBlock(Block& blockDes, Block& blockSrc, zend_ulong num_key, zval *value_zval);
 
+inline time_t stringToDatetime(std::string str);
+
 /*
  * Local variables:
  * tab-width: 4
