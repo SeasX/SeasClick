@@ -420,16 +420,8 @@ ColumnRef insertColumn(TypeRef type, zval *value_zval)
         auto value = std::make_shared<ColumnIPv6>();
         SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, array_value)
         {
-            if (Z_TYPE_P(array_value) == IS_STRING)
-            {
-                convert_to_string(array_value);
-                value->Append((string)Z_STRVAL_P(array_value));
-            }
-            else
-            {
-                convert_to_long(array_value);
-                value->Append(Z_LVAL_P(array_value));
-            }
+            convert_to_string(array_value);
+            value->Append((string)Z_STRVAL_P(array_value));
         }
         SC_HASHTABLE_FOREACH_END();
 
