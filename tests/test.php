@@ -80,13 +80,15 @@ function testTuple($client, $deleteTable = false) {
 function testArray($client, $deleteTable = false) {
     $client->execute("CREATE TABLE IF NOT EXISTS test.array_test (string_c String, array_c Array(Int8), arraynull_c Array(Nullable(String))) ENGINE = Memory");
 
-    $client->insert("test.array_test", [
+    $client->writeStart("test.array_test", [
         'string_c', 'arraynull_c'
-    ], [
+    ]);
+    $client->write([
         [
             'string_c2', ["string"]
         ]
     ]);
+    $client->writeEnd();
 
     $client->insert("test.array_test", [
         'string_c'
@@ -212,12 +214,14 @@ function testUInt($client, $deleteTable = false) {
         [9, 9, 9, 9],
     ]);
 
-    $client->insert("test.int_test",[
+    $client->writeStart("test.int_test", [
         'int8_c','int16_c','uint8_c'
-    ], [
+    ]);
+    $client->write([
         [8, 8, 8],
         [9, 9, 9],
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'int8_c, int16_c, uint8_c, uint16_c',
@@ -242,12 +246,14 @@ function testFloat($client, $deleteTable = false) {
         [32.31, 64.68]
     ]);
 
-    $client->insert("test.float_test",[
+    $client->writeStart("test.float_test", [
         'float32_c'
-    ], [
+    ]);
+    $client->write([
         [32.32],
         [32.31]
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'float32_c, float64_c',
@@ -276,12 +282,14 @@ function testUUID($client, $deleteTable = false) {
         ['31249a1b-7b05-4270-9f37-c609b48a9bb2', null],
     ]);
 
-    $client->insert("test.uuid_test",[
+    $client->writeStart("test.uuid_test", [
         'uuid_c'
-    ], [
+    ]);
+    $client->write([
         ['00000000-0000-0000-9f37-c609b48a9bb2'],
         ['31249a1b-7b05-4270-9f37-c609b48a9bb2'],
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'uuid_c, uuid2_c',

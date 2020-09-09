@@ -102,7 +102,7 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define SC_HASHTABLE_FOREACH_END() }
 
 #define sc_add_next_index_stringl             add_next_index_stringl
-
+#define sc_zend_hash_get_current_data         zend_hash_get_current_data
 #else
 // PHP5
 #define sc_zend_throw_exception zend_throw_exception
@@ -133,6 +133,19 @@ static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zval *obj
 
 #define sc_add_next_index_stringl(arr, str, len, dup)    add_next_index_stringl(arr, str, len)
 
+static inline int sc_zend_hash_get_current_data(HashTable *ht, void **v)
+{
+    zval *value = zend_hash_get_current_data(ht);
+    if (value == NULL)
+    {
+        return FAILURE;
+    }
+    else
+    {
+        *v = (void *) value;
+        return SUCCESS;
+    }
+}
 #endif
 
 #define php_array_get_value(ht, str, v) ((v = sc_zend_hash_find(ht, (char *)str, sizeof(str)-1)) && !ZVAL_IS_NULL(v))

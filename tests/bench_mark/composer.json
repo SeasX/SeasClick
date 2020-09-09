@@ -1,5 +1,6 @@
 {
     "require": {
-        "smi2/phpclickhouse": "^1.1"
+        "smi2/phpclickhouse": "^1.1",
+        "lizhichao/one-ck": "^0.1.8"
     }
 }

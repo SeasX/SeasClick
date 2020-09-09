@@ -31,12 +31,14 @@ function testFloat($client, $deleteTable = false) {
         [32.31, 64.68]
     ]);
 
-    $client->insert("test.float_test",[
+    $client->writeStart("test.float_test", [
         'float32_c'
-    ], [
+    ]);
+    $client->write([
         [32.32],
         [32.31]
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'float32_c, float64_c',

@@ -94,6 +94,8 @@ public:
 
     void InsertData(const Block& block);
 
+    void InsertDataEnd();
+
     /// Ping server for aliveness.
     void Ping();
 

@@ -4,8 +4,58 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d3221306b62716ca07412ebf79d997fd",
+    "content-hash": "5ce62d7da7b75f43d0dabe3f2766147a",
     "packages": [
+        {
+            "name": "lizhichao/one-ck",
+            "version": "0.1.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lizhichao/one-ck.git",
+                "reference": "0b1de9b6f5527e81023a677e39aa0f62e2fc0193"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lizhichao/one-ck/zipball/0b1de9b6f5527e81023a677e39aa0f62e2fc0193",
+                "reference": "0b1de9b6f5527e81023a677e39aa0f62e2fc0193",
+                "shasum": "",
+                "mirrors": [
+                    {
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
+                        "preferred": true
+                    }
+                ]
+            },
+            "require": {
+                "ext-bcmath": "*",
+                "ext-json": "*",
+                "php": ">=7.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "OneCk\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "tanszhe",
+                    "email": "1018595261@qq.com"
+                }
+            ],
+            "description": "clickhouse tcp client",
+            "keywords": [
+                "clickhouse",
+                "client",
+                "php",
+                "tcp"
+            ],
+            "time": "2020-09-09T07:30:08+00:00"
+        },
         {
             "name": "smi2/phpclickhouse",
             "version": "1.1.2",
@@ -21,7 +71,7 @@
                 "shasum": "",
                 "mirrors": [
                     {
-                        "url": "https://dl.laravel-china.org/%package%/%reference%.%type%",
+                        "url": "https://mirrors.aliyun.com/composer/dists/%package%/%reference%.%type%",
                         "preferred": true
                     }
                 ]

@@ -82,6 +82,8 @@ public:
 
     void InsertData(const Block& block);
 
+    void InsertDataEnd();
+
     void Ping();
 
     void ResetConnection();
@@ -288,6 +290,9 @@ void Client::Impl::InsertQuery(Query query) {
 void Client::Impl::InsertData(const Block& block) {
     // Send data.
     SendData(block);
+}
+
+void Client::Impl::InsertDataEnd() {
     // Send empty block as marker of
     // end of data.
     SendData(Block());
@@ -803,6 +808,10 @@ void Client::InsertQuery(const std::string& query, SelectCallback cb) {
 
 void Client::InsertData(const Block& block) {
     impl_->InsertData(block);
+}
+
+void Client::InsertDataEnd() {
+    impl_->InsertDataEnd();
 }
 
 void Client::Ping() {

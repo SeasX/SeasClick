@@ -31,12 +31,14 @@ function testUInt($client, $deleteTable = false) {
         [9, 9, 9, 9],
     ]);
 
-    $client->insert("test.int_test",[
+    $client->writeStart("test.int_test", [
         'int8_c','int16_c','uint8_c'
-    ], [
+    ]);
+    $client->write([
         [8, 8, 8],
         [9, 9, 9],
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'int8_c, int16_c, uint8_c, uint16_c',

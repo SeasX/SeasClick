@@ -31,12 +31,14 @@ function testUUID($client, $deleteTable = false) {
         ['31249a1b-7b05-4270-9f37-c609b48a9bb2', null],
     ]);
 
-    $client->insert("test.uuid_test",[
+    $client->writeStart("test.uuid_test", [
         'uuid_c'
-    ], [
+    ]);
+    $client->write([
         ['00000000-0000-0000-9f37-c609b48a9bb2'],
         ['31249a1b-7b05-4270-9f37-c609b48a9bb2'],
     ]);
+    $client->writeEnd();
     
     $result = $client->select("SELECT {select} FROM {table}", [
         'select' => 'uuid_c, uuid2_c',
