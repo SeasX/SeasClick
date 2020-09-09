@@ -62,7 +62,7 @@ static PHP_METHOD(SEASCLICK_RES_NAME, __construct);
 static PHP_METHOD(SEASCLICK_RES_NAME, __destruct);
 static PHP_METHOD(SEASCLICK_RES_NAME, select);
 static PHP_METHOD(SEASCLICK_RES_NAME, insert);
-static PHP_METHOD(SEASCLICK_RES_NAME, insertHeader);
+static PHP_METHOD(SEASCLICK_RES_NAME, insertStart);
 static PHP_METHOD(SEASCLICK_RES_NAME, insertData);
 static PHP_METHOD(SEASCLICK_RES_NAME, insertEnd);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
@@ -82,7 +82,7 @@ ZEND_ARG_INFO(0, columns)
 ZEND_ARG_INFO(0, values)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertHeader, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertStart, 0, 0, 2)
 ZEND_ARG_INFO(0, table)
 ZEND_ARG_INFO(0, columns)
 ZEND_END_ARG_INFO()
@@ -112,7 +112,7 @@ const zend_function_entry SeasClick_methods[] =
             PHP_ME(SEASCLICK_RES_NAME, __destruct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
                 PHP_ME(SEASCLICK_RES_NAME, select, SeasCilck_select, ZEND_ACC_PUBLIC)
                     PHP_ME(SEASCLICK_RES_NAME, insert, SeasCilck_insert, ZEND_ACC_PUBLIC)
-                        PHP_ME(SEASCLICK_RES_NAME, insertHeader, SeasCilck_insertHeader, ZEND_ACC_PUBLIC)
+                        PHP_ME(SEASCLICK_RES_NAME, insertStart, SeasCilck_insertStart, ZEND_ACC_PUBLIC)
                             PHP_ME(SEASCLICK_RES_NAME, insertData, SeasCilck_insertData, ZEND_ACC_PUBLIC)
                                 PHP_ME(SEASCLICK_RES_NAME, insertEnd, SeasCilck_insertEnd, ZEND_ACC_PUBLIC)
                                     PHP_ME(SEASCLICK_RES_NAME, execute, SeasCilck_execute, ZEND_ACC_PUBLIC)
@@ -499,9 +499,9 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
 }
 /* }}} */
 
-/* {{{ proto array insertHeader(string table, array columns)
+/* {{{ proto array insertStart(string table, array columns)
  */
-PHP_METHOD(SEASCLICK_RES_NAME, insertHeader)
+PHP_METHOD(SEASCLICK_RES_NAME, insertStart)
 {
     char *table = NULL;
     size_t l_table = 0;
