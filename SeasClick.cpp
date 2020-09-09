@@ -43,8 +43,7 @@ using namespace std;
 
 zend_class_entry *SeasClick_ce;
 map<int, Client *> clientMap;
-
-Block blockQuery;
+map<int, Block> blockQueryMap;
 
 #ifdef COMPILE_DL_SEASCLICK
 extern "C"
@@ -473,6 +472,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
 
         int key = Z_OBJ_HANDLE(*getThis());
         Client *client = clientMap.at(key);
+        Block blockQuery;
 
         client->InsertQuery(sql, [&blockQuery](const Block &block) {
             blockQuery = block;
@@ -533,11 +533,19 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertStart)
         getInsertSql(&sql, table, columns);
 
         int key = Z_OBJ_HANDLE(*getThis());
+
+        if (blockQueryMap.count(key))
+        {
+            throw std::runtime_error("The insert operation is now in progress");
+        }
         Client *client = clientMap.at(key);
 
+        Block blockQuery;
         client->InsertQuery(sql, [&blockQuery](const Block &block) {
             blockQuery = block;
         });
+
+        blockQueryMap.insert(std::pair<int, Block>(key, blockQuery));
     }
     catch (const std::exception &e)
     {
@@ -578,6 +586,14 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertData)
         }
         size_t count = zend_hash_num_elements(Z_ARRVAL_P(tmp));
 
+        int key = Z_OBJ_HANDLE(*getThis());
+        if (blockQueryMap.count(key) == 0)
+        {
+            throw std::runtime_error("The insert operation is not start");
+        }
+        Client *client = clientMap.at(key);
+        Block blockQuery = blockQueryMap.at(key);
+
         zval *return_should;
         SC_MAKE_STD_ZVAL(return_should);
         array_init(return_should);
@@ -612,8 +628,6 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertData)
             add_next_index_zval(return_should, return_tmp);
         }
 
-        int key = Z_OBJ_HANDLE(*getThis());
-        Client *client = clientMap.at(key);
         Block blockInsert;
         size_t index = 0;
         SC_HASHTABLE_FOREACH_START2(Z_ARRVAL_P(return_should), str_key, str_keylen, keytype, pzval)
@@ -622,6 +636,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertData)
             index++;
         }
         SC_HASHTABLE_FOREACH_END();
+
         client->InsertBlock(blockInsert);
         sc_zval_ptr_dtor(&return_should);
     }
@@ -640,9 +655,13 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertEnd)
     try
     {
         int key = Z_OBJ_HANDLE(*getThis());
+        if (blockQueryMap.count(key) == 0)
+        {
+            throw std::runtime_error("The insert operation is not start");
+        }
         Client *client = clientMap.at(key);
         client->InsertEnd();
-        blockQuery = Block();
+        blockQueryMap.erase(key);
     }
     catch (const std::exception &e)
     {
