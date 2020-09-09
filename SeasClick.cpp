@@ -44,6 +44,8 @@ using namespace std;
 zend_class_entry *SeasClick_ce;
 map<int, Client *> clientMap;
 
+Block blockQuery;
+
 #ifdef COMPILE_DL_SEASCLICK
 extern "C"
 {
@@ -60,6 +62,9 @@ static PHP_METHOD(SEASCLICK_RES_NAME, __construct);
 static PHP_METHOD(SEASCLICK_RES_NAME, __destruct);
 static PHP_METHOD(SEASCLICK_RES_NAME, select);
 static PHP_METHOD(SEASCLICK_RES_NAME, insert);
+static PHP_METHOD(SEASCLICK_RES_NAME, insertHeader);
+static PHP_METHOD(SEASCLICK_RES_NAME, insertData);
+static PHP_METHOD(SEASCLICK_RES_NAME, insertEnd);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
@@ -75,6 +80,18 @@ ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insert, 0, 0, 3)
 ZEND_ARG_INFO(0, table)
 ZEND_ARG_INFO(0, columns)
 ZEND_ARG_INFO(0, values)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertHeader, 0, 0, 2)
+ZEND_ARG_INFO(0, table)
+ZEND_ARG_INFO(0, columns)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertData, 0, 0, 1)
+ZEND_ARG_INFO(0, values)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertEnd, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_execute, 0, 0, 2)
@@ -95,8 +112,11 @@ const zend_function_entry SeasClick_methods[] =
             PHP_ME(SEASCLICK_RES_NAME, __destruct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
                 PHP_ME(SEASCLICK_RES_NAME, select, SeasCilck_select, ZEND_ACC_PUBLIC)
                     PHP_ME(SEASCLICK_RES_NAME, insert, SeasCilck_insert, ZEND_ACC_PUBLIC)
-                        PHP_ME(SEASCLICK_RES_NAME, execute, SeasCilck_execute, ZEND_ACC_PUBLIC)
-                            PHP_FE_END};
+                        PHP_ME(SEASCLICK_RES_NAME, insertHeader, SeasCilck_insertHeader, ZEND_ACC_PUBLIC)
+                            PHP_ME(SEASCLICK_RES_NAME, insertData, SeasCilck_insertData, ZEND_ACC_PUBLIC)
+                                PHP_ME(SEASCLICK_RES_NAME, insertEnd, SeasCilck_insertEnd, ZEND_ACC_PUBLIC)
+                                    PHP_ME(SEASCLICK_RES_NAME, execute, SeasCilck_execute, ZEND_ACC_PUBLIC)
+                                        PHP_FE_END};
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -450,7 +470,6 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
         }
 
         getInsertSql(&sql, table, columns);
-        Block blockQuery;
 
         int key = Z_OBJ_HANDLE(*getThis());
         Client *client = clientMap.at(key);
@@ -471,6 +490,159 @@ PHP_METHOD(SEASCLICK_RES_NAME, insert)
 
         client->InsertData(blockInsert);
         sc_zval_ptr_dtor(&return_should);
+    }
+    catch (const std::exception &e)
+    {
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+    }
+    RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto array insertHeader(string table, array columns)
+ */
+PHP_METHOD(SEASCLICK_RES_NAME, insertHeader)
+{
+    char *table = NULL;
+    size_t l_table = 0;
+    zval *columns;
+
+    string sql;
+
+#ifndef FAST_ZPP
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sz", &table, &l_table, &columns) == FAILURE)
+    {
+        return;
+    }
+#else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
+    ZEND_PARSE_PARAMETERS_START(2, 2)
+    Z_PARAM_STRING(table, l_table)
+    Z_PARAM_ARRAY(columns)
+    ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
+#endif
+
+    try
+    {
+        HashTable *columns_ht = Z_ARRVAL_P(columns);
+        size_t columns_count = zend_hash_num_elements(columns_ht);
+
+        getInsertSql(&sql, table, columns);
+
+        int key = Z_OBJ_HANDLE(*getThis());
+        Client *client = clientMap.at(key);
+
+        client->InsertQuery(sql, [&blockQuery](const Block &block) {
+            blockQuery = block;
+        });
+    }
+    catch (const std::exception &e)
+    {
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+    }
+    RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto array insertData(array values)
+ */
+PHP_METHOD(SEASCLICK_RES_NAME, insertData)
+{
+    zval *values;
+
+#ifndef FAST_ZPP
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &values) == FAILURE)
+    {
+        return;
+    }
+#else
+#undef IS_UNDEF
+#define IS_UNDEF Z_EXPECTED_LONG
+    ZEND_PARSE_PARAMETERS_START(1, 1)
+    Z_PARAM_ARRAY(values)
+    ZEND_PARSE_PARAMETERS_END();
+#undef IS_UNDEF
+#define IS_UNDEF 0
+#endif
+
+    try
+    {
+        HashTable *values_ht = Z_ARRVAL_P(values);
+        zval *tmp = zend_hash_get_current_data(values_ht);
+        if (tmp == NULL)
+        {
+            RETURN_FALSE;
+        }
+        size_t count = zend_hash_num_elements(Z_ARRVAL_P(tmp));
+
+        zval *return_should;
+        SC_MAKE_STD_ZVAL(return_should);
+        array_init(return_should);
+
+        zval *fzval, *pzval;
+        char *str_key;
+        uint32_t str_keylen;
+        int keytype;
+
+        zval *return_tmp;
+        for (size_t i = 0; i < count; i++)
+        {
+            SC_MAKE_STD_ZVAL(return_tmp);
+            array_init(return_tmp);
+
+            SC_HASHTABLE_FOREACH_START2(values_ht, str_key, str_keylen, keytype, pzval)
+            {
+                if (Z_TYPE_P(pzval) != IS_ARRAY)
+                {
+                    throw std::runtime_error("The insert function needs to pass in a two-dimensional array");
+                }
+                fzval = sc_zend_hash_index_find(Z_ARRVAL_P(pzval), i);
+                if (NULL == fzval)
+                {
+                    throw std::runtime_error("The number of parameters inserted per line is inconsistent");
+                }
+                sc_zval_add_ref(fzval);
+                add_next_index_zval(return_tmp, fzval);
+            }
+            SC_HASHTABLE_FOREACH_END();
+
+            add_next_index_zval(return_should, return_tmp);
+        }
+
+        int key = Z_OBJ_HANDLE(*getThis());
+        Client *client = clientMap.at(key);
+        Block blockInsert;
+        size_t index = 0;
+        SC_HASHTABLE_FOREACH_START2(Z_ARRVAL_P(return_should), str_key, str_keylen, keytype, pzval)
+        {
+            zvalToBlock(blockInsert, blockQuery, index, pzval);
+            index++;
+        }
+        SC_HASHTABLE_FOREACH_END();
+        client->InsertBlock(blockInsert);
+        sc_zval_ptr_dtor(&return_should);
+    }
+    catch (const std::exception &e)
+    {
+        sc_zend_throw_exception(NULL, e.what(), 0 TSRMLS_CC);
+    }
+    RETURN_TRUE;
+}
+/* }}} */
+
+/* {{{ proto array insertEnd()
+ */
+PHP_METHOD(SEASCLICK_RES_NAME, insertEnd)
+{
+    try
+    {
+        int key = Z_OBJ_HANDLE(*getThis());
+        Client *client = clientMap.at(key);
+        client->InsertEnd();
+        blockQuery = Block();
     }
     catch (const std::exception &e)
     {
