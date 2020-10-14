@@ -62,7 +62,7 @@ if test "$PHP_SEASCLICK" != "no"; then
   dnl PHP_SUBST(SEASCLICK_SHARED_LIBADD)
 
   if test "$PHP_SWOOLE" = "yes"; then
-    if test -e $(/usr/bin/php-config --include-dir)/ext/swoole/include/socket_hook.h; then
+    if test -e $(/usr/bin/php-config --include-dir)/ext/swoole/include/swoole_socket_hook.h; then
       AC_DEFINE(USE_SWOOLE, 1, [enable swoole support])
       CXXFLAGS="$CXXFLAGS -DUSE_SWOOLE"
     fi
