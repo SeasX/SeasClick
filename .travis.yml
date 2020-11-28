@@ -7,6 +7,9 @@ compiler:
 os:
   - linux
 
+env:
+  - REPORT_EXIT_STATUS=1 NO_INTERACTION=1
+
 services:
   - docker
 
@@ -16,6 +19,7 @@ addons:
     - clickhouse
 
 php:
+  - 5.4
   - 5.5
   - 5.6
   - 7.0

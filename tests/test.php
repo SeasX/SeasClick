@@ -33,6 +33,7 @@ function clientTest($config)
     testUUID($client, $deleteTable);
     testDate($client, $deleteTable);
     testMulInstance($config, $deleteTable);
+    testTuple($client, $deleteTable);
 }
 
 function testMulInstance($config, $deleteTable = false) {
@@ -52,6 +53,28 @@ function testMulInstance($config, $deleteTable = false) {
     unset($client2);
     unset($client3);
     unset($client4);
+}
+
+function testTuple($client, $deleteTable = false) {
+    $client->execute("CREATE TABLE IF NOT EXISTS test.tuple_test (tuple_c Tuple(id UInt64, name String), int_c UInt64, string_c String) ENGINE = Memory");
+
+    $client->insert("test.tuple_test", [
+        'tuple_c', 'int_c', 'string_c'
+    ], [
+        [[1, 'one'], 1, 'one'],
+        [[2, 'two'], 2, 'two'],
+    ]);
+    $result = $client->select("SELECT {select} FROM {table}", [
+        'select' => 'tuple_c, int_c, string_c',
+        'table' => 'test.tuple_test'
+    ]);
+    var_dump($result);
+
+    if ($deleteTable) {
+        $client->execute("DROP TABLE {table}", [
+            'table' => 'test.tuple_test'
+        ]);
+    }
 }
 
 function testArray($client, $deleteTable = false) {

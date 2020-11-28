@@ -15,6 +15,7 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
     **Multidimensional arrays are not supported at this time**
 * Date
 * DateTime
+* Decimal32, Decimal64, Decimal128
 * Enum8, Enum16
 * FixedString(N)
 * Float32, Float64
@@ -23,7 +24,7 @@ PHP client for [Yandex ClickHouse](https://clickhouse.yandex/)，Based on [Click
 * UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
 ## Supported PHP version
-PHP 5.5+
+PHP 5.4+
 
 ## Performance
 ![image](https://github.com/SeasX/SeasClick/raw/master/tests/bench_mark/bench_mark.png)
@@ -33,8 +34,6 @@ This performance test [demo](https://github.com/SeasX/SeasClick/blob/master/test
 ## Install
 ```ssh
 git clone https://github.com/SeasX/SeasClick.git
-git submodule init
-git submodule update
 cd SeasClick
 phpize
 ./configure
@@ -86,7 +85,7 @@ function testArray($client, $deleteTable = false) {
     }
 }
 ```
-#### [More examples](https://github.com/SeasX/SeasClick/tests/test.php)
+#### [More examples](https://github.com/SeasX/SeasClick/blob/master/tests/test.php)
 
 ## Support
 SeasX Group

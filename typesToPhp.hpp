@@ -22,9 +22,13 @@ ColumnRef createColumn(TypeRef type);
 
 ColumnRef insertColumn(TypeRef type, zval *value_zval);
 
+std::string int128_to_string(Int128 value, size_t scale);
+
 void convertToZval(zval *arr, const ColumnRef& columnRef, int row, string column_name, int8_t is_array);
 
 void zvalToBlock(Block& blockDes, Block& blockSrc, zend_ulong num_key, zval *value_zval);
+
+inline time_t stringToDatetime(std::string str);
 
 /*
  * Local variables:

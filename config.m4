@@ -16,6 +16,8 @@ dnl Otherwise use enable:
 PHP_ARG_ENABLE(SeasClick, whether to enable SeasClick support,
 Make sure that the comment is aligned:
 [  --enable-SeasClick           Enable SeasClick support])
+PHP_ARG_ENABLE(swoole, enable swoole support,
+[  --enable-swoole            Use swoole], yes, no)
 
 if test "$PHP_SEASCLICK" != "no"; then
   dnl Write more examples of tests here...
@@ -58,10 +60,17 @@ if test "$PHP_SEASCLICK" != "no"; then
   dnl ])
   dnl
   dnl PHP_SUBST(SEASCLICK_SHARED_LIBADD)
+
+  if test "$PHP_SWOOLE" = "yes"; then
+    if test -e $(/usr/bin/php-config --include-dir)/ext/swoole/include/swoole_socket_hook.h; then
+      AC_DEFINE(USE_SWOOLE, 1, [enable swoole support])
+      CXXFLAGS="$CXXFLAGS -DUSE_SWOOLE"
+    fi
+  fi
   PHP_REQUIRE_CXX()
   PHP_SUBST(SEASCLICK_SHARED_LIBADD)
   PHP_ADD_LIBRARY(stdc++, 1, SEASCLICK_SHARED_LIBADD)
-  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=c++11"
+  CXXFLAGS="$CXXFLAGS -Wall -Wno-unused-function -Wno-deprecated -Wno-deprecated-declarations -std=gnu++17"
   SeasClick_source_file="SeasClick.cpp \
         typesToPhp.cpp \
         lib/clickhouse-cpp/clickhouse/base/coded.cpp \
@@ -70,31 +79,47 @@ if test "$PHP_SEASCLICK" != "no"; then
         lib/clickhouse-cpp/clickhouse/base/output.cpp \
         lib/clickhouse-cpp/clickhouse/base/platform.cpp \
         lib/clickhouse-cpp/clickhouse/base/socket.cpp \
+
         lib/clickhouse-cpp/clickhouse/columns/array.cpp \
         lib/clickhouse-cpp/clickhouse/columns/date.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/decimal.cpp \
         lib/clickhouse-cpp/clickhouse/columns/enum.cpp \
         lib/clickhouse-cpp/clickhouse/columns/factory.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip4.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/ip6.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/lowcardinality.cpp \
         lib/clickhouse-cpp/clickhouse/columns/nullable.cpp \
         lib/clickhouse-cpp/clickhouse/columns/numeric.cpp \
         lib/clickhouse-cpp/clickhouse/columns/string.cpp \
         lib/clickhouse-cpp/clickhouse/columns/tuple.cpp \
         lib/clickhouse-cpp/clickhouse/columns/uuid.cpp \
+        lib/clickhouse-cpp/clickhouse/columns/itemview.cpp \
+        
         lib/clickhouse-cpp/clickhouse/types/type_parser.cpp \
         lib/clickhouse-cpp/clickhouse/types/types.cpp \
+
         lib/clickhouse-cpp/contrib/cityhash/city.cc \
         lib/clickhouse-cpp/contrib/lz4/lz4.c \
         lib/clickhouse-cpp/contrib/lz4/lz4hc.c \
         lib/clickhouse-cpp/contrib/gtest/gtest-all.cc \
+        
         lib/clickhouse-cpp/clickhouse/block.cpp \
         lib/clickhouse-cpp/clickhouse/client.cpp \
         lib/clickhouse-cpp/clickhouse/query.cpp"
   SeasClick_header_file="lib/clickhouse-cpp/contrib"
-  
-  PHP_ADD_INCLUDE([$SeasClick_header_file])
+
+  THIS_DIR=`dirname $0`
+  PHP_ADD_INCLUDE($THIS_DIR/lib/clickhouse-cpp/contrib)
   
   PHP_NEW_EXTENSION(SeasClick, $SeasClick_source_file, $ext_shared,,-DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/cityhash)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/gtest)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/contrib/lz4)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/base)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/types)
+  PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp/clickhouse/columns)
   PHP_ADD_BUILD_DIR($ext_builddir/lib/clickhouse-cpp)
 fi

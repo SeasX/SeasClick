@@ -176,11 +176,6 @@ function testPhpClickhouse($insertData, $num, $limit)
         ENGINE = SummingMergeTree(event_date, (site_id, site_key, event_time, event_date), 8192)
     ');
 
-    $a = 100;
-    $insertData = [];
-    while ($a--) {
-        $insertData[] = [time(), 'HASH2', 2345, 12, 9,  3];
-    }
     $db->insert("summing_url_views",
         $insertData,
         ['event_time', 'site_key', 'site_id', 'views', 'v_00', 'v_55']

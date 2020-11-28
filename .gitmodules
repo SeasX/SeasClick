@@ -1,3 +1,4 @@
 [submodule "lib/clickhouse-cpp"]
 	path = lib/clickhouse-cpp
-	url = https://github.com/aiwhj/clickhouse-cpp.git
+	url = https://github.com/amuluowin/clickhouse-cpp.git
+	branch = master
