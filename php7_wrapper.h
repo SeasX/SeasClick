@@ -15,9 +15,17 @@
   | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
+
 // PHP7.4 + 
 #if !defined(ZEND_ACC_IMPLICIT_PUBLIC)
 # define ZEND_ACC_IMPLICIT_PUBLIC ZEND_ACC_PUBLIC
+#endif
+
+#ifndef ZEND_ACC_CTOR
+#define ZEND_ACC_CTOR 0
+#endif
+#ifndef ZEND_ACC_DTOR
+#define ZEND_ACC_DTOR 0
 #endif
 
 // PHP7+
@@ -118,11 +126,24 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_add_assoc_zval_ex                  add_assoc_zval_ex
 #define sc_add_assoc_stringl_ex(a, b, c, d, e, f)               add_assoc_stringl_ex(a, b, c, d, e)
 #define sc_add_assoc_null_ex(a, b, c)               add_assoc_null_ex(a, b, c)
+
+// PHP8
+#if PHP_VERSION_ID < 80000
+#define SC_OBJ_P(zobj)    zobj
 static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zval *obj, const char *s, int len, int silent)
 {
     zval rv;
     return zend_read_property(class_ptr, obj, s, len, silent, &rv);
 }
+#else
+#define TSRMLS_CC
+#define SC_OBJ_P(zobj)    Z_OBJ_P(zobj)
+static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zend_object *obj, const char *s, int len, int silent)
+{
+    zval rv;
+    return zend_read_property(class_ptr, obj, s, len, silent, &rv);
+}
+#endif
 
 #define SC_HASHTABLE_FOREACH_START2(ht, k, klen, ktype, _val) zend_string *_foreach_key;\
     ZEND_HASH_FOREACH_STR_KEY_VAL(ht, _foreach_key, _val);\

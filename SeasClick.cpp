@@ -228,24 +228,24 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     if (php_array_get_value(_ht, "host", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "host", sizeof("host") - 1, Z_STRVAL_P(value) TSRMLS_CC);
+        zend_update_property_string(SeasClick_ce, SC_OBJ_P(this_obj), "host", sizeof("host") - 1, Z_STRVAL_P(value) TSRMLS_CC);
     }
 
     if (php_array_get_value(_ht, "port", value))
     {
         convert_to_long(value);
-        zend_update_property_long(SeasClick_ce, this_obj, "port", sizeof("port") - 1, Z_LVAL_P(value) TSRMLS_CC);
+        zend_update_property_long(SeasClick_ce, SC_OBJ_P(this_obj), "port", sizeof("port") - 1, Z_LVAL_P(value) TSRMLS_CC);
     }
 
     if (php_array_get_value(_ht, "compression", value))
     {
         convert_to_boolean(value);
-        zend_update_property_bool(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, Z_LVAL_P(value) TSRMLS_CC);
+        zend_update_property_bool(SeasClick_ce, SC_OBJ_P(this_obj), "compression", sizeof("compression") - 1, Z_LVAL_P(value) TSRMLS_CC);
     }
 
-    zval *host = sc_zend_read_property(SeasClick_ce, this_obj, "host", sizeof("host") - 1, 0);
-    zval *port = sc_zend_read_property(SeasClick_ce, this_obj, "port", sizeof("port") - 1, 0);
-    zval *compression = sc_zend_read_property(SeasClick_ce, this_obj, "compression", sizeof("compression") - 1, 0);
+    zval *host = sc_zend_read_property(SeasClick_ce, SC_OBJ_P(this_obj), "host", sizeof("host") - 1, 0);
+    zval *port = sc_zend_read_property(SeasClick_ce, SC_OBJ_P(this_obj), "port", sizeof("port") - 1, 0);
+    zval *compression = sc_zend_read_property(SeasClick_ce, SC_OBJ_P(this_obj), "compression", sizeof("compression") - 1, 0);
 
     ClientOptions Options = ClientOptions()
                                 .SetHost(Z_STRVAL_P(host))
@@ -260,21 +260,21 @@ PHP_METHOD(SEASCLICK_RES_NAME, __construct)
     if (php_array_get_value(_ht, "database", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "database", sizeof("database") - 1, Z_STRVAL_P(value) TSRMLS_CC);
+        zend_update_property_string(SeasClick_ce, SC_OBJ_P(this_obj), "database", sizeof("database") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetDefaultDatabase(Z_STRVAL_P(value));
     }
 
     if (php_array_get_value(_ht, "user", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "user", sizeof("user") - 1, Z_STRVAL_P(value) TSRMLS_CC);
+        zend_update_property_string(SeasClick_ce, SC_OBJ_P(this_obj), "user", sizeof("user") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetUser(Z_STRVAL_P(value));
     }
 
     if (php_array_get_value(_ht, "passwd", value))
     {
         convert_to_string(value);
-        zend_update_property_string(SeasClick_ce, this_obj, "passwd", sizeof("passwd") - 1, Z_STRVAL_P(value) TSRMLS_CC);
+        zend_update_property_string(SeasClick_ce, SC_OBJ_P(this_obj), "passwd", sizeof("passwd") - 1, Z_STRVAL_P(value) TSRMLS_CC);
         Options = Options.SetPassword(Z_STRVAL_P(value));
     }
 
