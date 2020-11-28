@@ -66,6 +66,9 @@ static PHP_METHOD(SEASCLICK_RES_NAME, insertData);
 static PHP_METHOD(SEASCLICK_RES_NAME, insertEnd);
 static PHP_METHOD(SEASCLICK_RES_NAME, execute);
 
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_void, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_construct, 0, 0, 1)
 ZEND_ARG_INFO(0, connectParames)
 ZEND_END_ARG_INFO()
@@ -90,9 +93,6 @@ ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertData, 0, 0, 1)
 ZEND_ARG_INFO(0, values)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_insertEnd, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_execute, 0, 0, 2)
 ZEND_ARG_INFO(0, sql)
 ZEND_ARG_INFO(0, params)
@@ -101,19 +101,19 @@ ZEND_END_ARG_INFO()
 /* {{{ SeasClick_functions[] */
 const zend_function_entry SeasClick_functions[] =
     {
-        PHP_FE(SeasClick_version, NULL)
+        PHP_FE(SeasClick_version, SeasCilck_void)
             PHP_FE_END};
 /* }}} */
 
 const zend_function_entry SeasClick_methods[] =
     {
         PHP_ME(SEASCLICK_RES_NAME, __construct, SeasCilck_construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-            PHP_ME(SEASCLICK_RES_NAME, __destruct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+            PHP_ME(SEASCLICK_RES_NAME, __destruct, SeasCilck_void, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
                 PHP_ME(SEASCLICK_RES_NAME, select, SeasCilck_select, ZEND_ACC_PUBLIC)
                     PHP_ME(SEASCLICK_RES_NAME, insert, SeasCilck_insert, ZEND_ACC_PUBLIC)
                         PHP_ME(SEASCLICK_RES_NAME, insertStart, SeasCilck_insertStart, ZEND_ACC_PUBLIC)
                             PHP_ME(SEASCLICK_RES_NAME, insertData, SeasCilck_insertData, ZEND_ACC_PUBLIC)
-                                PHP_ME(SEASCLICK_RES_NAME, insertEnd, SeasCilck_insertEnd, ZEND_ACC_PUBLIC)
+                                PHP_ME(SEASCLICK_RES_NAME, insertEnd, SeasCilck_void, ZEND_ACC_PUBLIC)
                                     PHP_ME(SEASCLICK_RES_NAME, execute, SeasCilck_execute, ZEND_ACC_PUBLIC)
                                         PHP_FE_END};
 
@@ -648,7 +648,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, insertData)
 }
 /* }}} */
 
-/* {{{ proto array insertEnd()
+/* {{{ proto void insertEnd()
  */
 PHP_METHOD(SEASCLICK_RES_NAME, insertEnd)
 {
@@ -732,7 +732,7 @@ PHP_METHOD(SEASCLICK_RES_NAME, execute)
 }
 /* }}} */
 
-/* {{{ proto array __destruct()
+/* {{{ proto void __destruct()
  */
 PHP_METHOD(SEASCLICK_RES_NAME, __destruct)
 {
