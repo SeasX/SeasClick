@@ -15,13 +15,21 @@
   | Author:  SeasX Group <ahhhh.wang@gmail.com>                          |
   +----------------------------------------------------------------------+
 */
-// PHP7.4 + 
+
+
+// PHP7.4 +  
 #if !defined(ZEND_ACC_IMPLICIT_PUBLIC)
 # define ZEND_ACC_IMPLICIT_PUBLIC ZEND_ACC_PUBLIC
 #endif
 
-// PHP7+
-#if PHP_MAJOR_VERSION < 7
+
+// PHP8+  
+#if !defined(ZEND_ACC_DTOR)
+#define ZEND_ACC_DTOR       0x4000
+#endif
+
+// PHP5+  
+#if PHP_MAJOR_VERSION <7
 
 #if PHP_VERSION_ID < 50500
 #define sc_zend_throw_exception(a, b, c) zend_throw_exception(a, (char *)b, c)
@@ -29,6 +37,7 @@
 #define sc_zend_throw_exception zend_throw_exception
 #endif
 
+#define sc_zend_throw_exception_tsrmls_cc sc_zend_throw_exception
 #define IS_TRUE                               1
 #define SC_MAKE_STD_ZVAL(p)                   MAKE_STD_ZVAL(p)
 #define SC_RETURN_STRINGL(k, l) RETURN_STRINGL(k, l, 1)
@@ -85,7 +94,9 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
     }
 }
 
-#define sc_zend_read_property(a, b, c, d, e)                  zend_read_property(a, b, c, d, e TSRMLS_CC)
+#define sc_zend_update_property_string    zend_update_property_string
+
+#define sc_zend_read_property(a, b, c, d, e)  zend_read_property(a, b, c, d, e TSRMLS_CC)
 
 #define SC_HASHTABLE_FOREACH_START2(ht, k, klen, ktype, entry)\
     zval **tmp = NULL; ulong_t idx;\
@@ -104,9 +115,8 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_add_next_index_stringl             add_next_index_stringl
 #define sc_zend_hash_get_current_data         zend_hash_get_current_data
 #else
-// PHP5
+// PHP7
 #define sc_zend_throw_exception zend_throw_exception
-
 #define sc_zend_hash_find   zend_hash_str_find
 #define sc_zend_hash_index_find   zend_hash_index_find
 #define SC_MAKE_STD_ZVAL(p)             zval _stack_zval_##p; p = &(_stack_zval_##p)
@@ -118,10 +128,62 @@ static inline zval *sc_zend_hash_index_find(HashTable *ht, ulong h)
 #define sc_add_assoc_zval_ex                  add_assoc_zval_ex
 #define sc_add_assoc_stringl_ex(a, b, c, d, e, f)               add_assoc_stringl_ex(a, b, c, d, e)
 #define sc_add_assoc_null_ex(a, b, c)               add_assoc_null_ex(a, b, c)
+
+
+
+#if PHP_VERSION_ID < 80000
+#define sc_zend_throw_exception_tsrmls_cc(a, b, c) sc_zend_throw_exception(a, b, c TSRMLS_CC)
+#else
+#define sc_zend_throw_exception_tsrmls_cc(a, b, c) sc_zend_throw_exception(a, b, c)
+#endif
+
+
 static inline zval* sc_zend_read_property(zend_class_entry *class_ptr, zval *obj, const char *s, int len, int silent)
 {
     zval rv;
-    return zend_read_property(class_ptr, obj, s, len, silent, &rv);
+#if PHP_VERSION_ID < 80000
+     return zend_read_property(class_ptr, obj, s, len, silent, &rv);
+#else
+    zend_object *zendObject;
+    zendObject=Z_OBJ_P(obj);
+     return zend_read_property(class_ptr, zendObject, s, len, silent, &rv);
+#endif
+   
+}
+
+
+static  inline void sc_zend_update_property_string( zend_class_entry *scope, zval *object, const char *name, size_t name_length, const char *value)
+{
+#if PHP_VERSION_ID < 80000
+     return zend_update_property_string(scope, object, name, name_length,  value TSRMLS_CC);
+#else
+    zend_object *zendObject;
+    zendObject=Z_OBJ_P(object);
+    return zend_update_property_string(scope, zendObject, name, name_length,  value);
+#endif
+}
+
+
+static  inline void sc_zend_update_property_long(zend_class_entry *scope, zval *object, const char *name, size_t name_length, zend_long value) 
+{
+#if PHP_VERSION_ID < 80000
+     return zend_update_property_long(scope, object, name, name_length,  value TSRMLS_CC);
+#else
+    zend_object *zendObject;
+    zendObject=Z_OBJ_P(object);
+    return zend_update_property_long(scope, zendObject, name, name_length,  value);
+#endif
+}
+
+static  inline void sc_zend_update_property_bool(zend_class_entry *scope, zval *object, const char *name, size_t name_length, zend_long value) /* {{{ */
+{
+#if PHP_VERSION_ID < 80000
+     return zend_update_property_bool(scope, object, name, name_length,  value TSRMLS_CC);
+#else
+    zend_object *zendObject;
+    zendObject=Z_OBJ_P(object);
+    return zend_update_property_bool(scope, zendObject, name, name_length,  value);
+#endif
 }
 
 #define SC_HASHTABLE_FOREACH_START2(ht, k, klen, ktype, _val) zend_string *_foreach_key;\
