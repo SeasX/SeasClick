@@ -139,7 +139,7 @@ PHP_MINIT_FUNCTION(SeasClick)
     REGISTER_SC_CLASS_CONST_LONG("DATE_AS_STRINGS", (zend_long)SC_FETCH_DATE_AS_STRINGS);
     REGISTER_SC_CLASS_CONST_LONG("FETCH_COLUMN", (zend_long)SC_FETCH_COLUMN);
 
-    SeasClick_ce->ce_flags = ZEND_ACC_IMPLICIT_PUBLIC;
+    SeasClick_ce->ce_flags |= ZEND_ACC_FINAL;
     return SUCCESS;
 }
 /* }}} */
