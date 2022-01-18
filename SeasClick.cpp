@@ -50,10 +50,10 @@ extern "C" {
 }
 #endif
 
-PHP_FUNCTION(SeasClick_version)
-{
-    SC_RETURN_STRINGL(PHP_SEASCLICK_VERSION, strlen(PHP_SEASCLICK_VERSION));
-}
+// PHP_FUNCTION(SeasClick_version)
+// {
+//     SC_RETURN_STRINGL(PHP_SEASCLICK_VERSION, strlen(PHP_SEASCLICK_VERSION));
+// }
 
 static PHP_METHOD(SEASCLICK_RES_NAME, __construct);
 static PHP_METHOD(SEASCLICK_RES_NAME, __destruct);
@@ -69,8 +69,7 @@ ZEND_ARG_INFO(0, connectParames)
 ZEND_END_ARG_INFO()
 
 
-ZEND_BEGIN_ARG_INFO_EX(SeasCilck_destruct, 0, 0, 1)
-ZEND_ARG_INFO(0, params)
+ZEND_BEGIN_ARG_INFO_EX(SeasCilck_destruct, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(SeasCilck_select, 0, 0, 2)
@@ -104,7 +103,7 @@ ZEND_END_ARG_INFO()
 /* {{{ SeasClick_functions[] */
 const zend_function_entry SeasClick_functions[] =
 {
-    PHP_FE(SeasClick_version,	NULL)
+    //PHP_FE(SeasClick_version,	NULL)
     PHP_FE_END
 };
 /* }}} */
@@ -112,7 +111,7 @@ const zend_function_entry SeasClick_functions[] =
 const zend_function_entry SeasClick_methods[] =
 {
     PHP_ME(SEASCLICK_RES_NAME, __construct,   SeasCilck_construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(SEASCLICK_RES_NAME, __destruct,    SeasCilck_destruct, ZEND_ACC_PUBLIC | ZEND_ACC_DTOR)
+    PHP_ME(SEASCLICK_RES_NAME, __destruct,    SeasCilck_destruct, ZEND_ACC_PUBLIC)
     PHP_ME(SEASCLICK_RES_NAME, select,        SeasCilck_select, ZEND_ACC_PUBLIC)
     PHP_ME(SEASCLICK_RES_NAME, insert,        SeasCilck_insert, ZEND_ACC_PUBLIC)
     PHP_ME(SEASCLICK_RES_NAME, writeStart,    SeasCilck_writeStart, ZEND_ACC_PUBLIC)
