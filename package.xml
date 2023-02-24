@@ -12,11 +12,23 @@
         <email>neeke@php.net</email>
         <active>yes</active>
     </lead>
-    <date>2019-03-28</date>
+     <developer>
+        <name>Rock Li</name>
+        <user>rock</user>
+        <email>rock.li.china@php.net</email>
+        <active>no</active>
+    </developer>
+         <developer>
+        <name>Roger</name>
+        <user>roger</user>
+        <email>Roger@php.net</email>
+        <active>no</active>
+    </developer>
+    <date>2023-02-24</date>
     <time>13:00:00</time>
     <version>
-        <release>0.1.0</release>
-        <api>0.1.0</api>
+        <release>0.1.1</release>
+        <api>0.1.1</api>
     </version>
     <stability>
         <release>stable</release>
@@ -24,7 +36,7 @@
     </stability>
     <license uri="http://www.php.net/license/3_01.txt">PHP3.01</license>
     <notes>
-        - First version for pecl.net
+        - Second version for pecl.net
     </notes>
     <contents>
         <dir name="/">

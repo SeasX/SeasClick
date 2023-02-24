@@ -25,7 +25,7 @@
 extern zend_module_entry SeasClick_module_entry;
 #define phpext_SeasClick_ptr &SeasClick_module_entry
 
-#define PHP_SEASCLICK_VERSION "0.1.0"
+#define PHP_SEASCLICK_VERSION "0.1.1"
 
 #ifdef PHP_WIN32
 #	define PHP_SEASCLICK_API __declspec(dllexport)
