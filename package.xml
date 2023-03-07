@@ -12,18 +12,6 @@
         <email>neeke@php.net</email>
         <active>yes</active>
     </lead>
-     <developer>
-        <name>Rock Li</name>
-        <user>rock</user>
-        <email>rock.li.china@php.net</email>
-        <active>no</active>
-    </developer>
-         <developer>
-        <name>Roger</name>
-        <user>roger</user>
-        <email>Roger@php.net</email>
-        <active>no</active>
-    </developer>
     <date>2023-02-24</date>
     <time>13:00:00</time>
     <version>
@@ -36,7 +24,7 @@
     </stability>
     <license uri="http://www.php.net/license/3_01.txt">PHP3.01</license>
     <notes>
-        - Second version for pecl.net
+        - Support PHP8.X version for pecl.net
     </notes>
     <contents>
         <dir name="/">
@@ -167,7 +155,7 @@
     <dependencies>
         <required>
             <php>
-                <min>5.4.0</min>
+                <min>7.0.0</min>
             </php>
             <pearinstaller>
                 <min>1.4.0</min>
@@ -177,6 +165,7 @@
     <providesextension>SeasClick</providesextension>
     <extsrcrelease/>
     <changelog>
+        - Support PHP8.X version for pecl.net
     </changelog>
 </package>
 
